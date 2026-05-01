@@ -20,7 +20,7 @@ import UnauthPage from "./pages/unauth-page";
 
 function App() {
 
-  const isAuthenticated = true;
+  const isAuthenticated = false;
   const user = {
     name: "John Doe",
     role:"user"
@@ -35,7 +35,7 @@ function App() {
             <AuthLayout />
           </CheckAuth>
           }>
-          <Route index element={<AuthLogin />} />
+        
           <Route path="login" element={<AuthLogin />} />
           <Route path="register" element={<AuthRegister />} />
         </Route>
@@ -45,7 +45,7 @@ function App() {
             <AdminLayout />
           </CheckAuth>
           }>
-          <Route index element={<AdminDashboard />} />
+          
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="products" element={<AdminProducts />} />
           <Route path="orders" element={<AdminOrders />} />
