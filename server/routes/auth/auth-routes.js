@@ -1,5 +1,5 @@
 const express = require("express");
-const { registerUser, loginUser } = require("../../controllers/auth/auth-controller");
+const { registerUser, loginUser , logoutUser, authMiddleware} = require("../../controllers/auth/auth-controller");
 
 const router = express.Router();
 console.log("Auth router loaded");
