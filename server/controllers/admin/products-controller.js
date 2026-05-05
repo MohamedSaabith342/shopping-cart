@@ -1,4 +1,4 @@
-
+const { imageUploadUtil } = require("../../helpers/cloudinary");
 
 const handleImageUpload = async (req, res) => {
   try {
@@ -18,3 +18,5 @@ const handleImageUpload = async (req, res) => {
     });
   }
 };
+
+module.exports = {handleImageUpload};
