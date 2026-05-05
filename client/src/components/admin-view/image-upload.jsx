@@ -12,6 +12,7 @@ function ProductImageUpload({
   setImageFile,
   uploadedImageUrl,
   setUploadedImageUrl,
+  setImageLoadingState
 
 }) {
   const inputRef = useRef(null);
@@ -44,6 +45,7 @@ function ProductImageUpload({
   }
 
   async function uploadImageToCloudinary() {
+    setImageLoadingState(true);
     const data = new FormData();
     data.append("my_file", imageFile);
     const response = await axios.post(
@@ -54,6 +56,7 @@ function ProductImageUpload({
 
     if (response?.data?.success) {
       setUploadedImageUrl(response.data.result.url);
+      setImageLoadingState(false);
       
     }
   }
