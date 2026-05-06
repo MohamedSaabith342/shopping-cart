@@ -4,6 +4,12 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "../../components/u
 import CommonForm from "../../components/common/form";
 import { addProductFormElements } from "@/config";
 import ProductImageUpload from "@/components/admin-view/image-upload";
+import { useDispatch, useSelector } from "react-redux";
+import { addNewProduct, fetchAllProducts } from "@/store/admin/products-slice";
+import { toast } from "sonner"; 
+
+import {useEffect} from "react";
+
 
 const initialFormData = {
   image: null,
@@ -24,13 +30,43 @@ function AdminProducts() {
   const [uploadedImageUrl, setUploadedImageUrl] = useState("");
   const [imageLoadingState, setImageLoadingState] = useState(false);
 
+  const { productList } = useSelector((state) => state.adminProducts);
+  const dispatch = useDispatch();
+
+  
+
   console.log("imageloadingstate", imageLoadingState);
 
   
 
 
   function onSubmit(event) {
-    event.preventDefault();}
+    event.preventDefault();
+
+    dispatch(
+          addNewProduct({
+            ...formData,
+            image: uploadedImageUrl,
+          })
+        ).then((data) => {
+          if (data?.payload?.success) {
+            dispatch(fetchAllProducts());
+            setOpenCreateProductsDialog(false);
+            setImageFile(null);
+            setFormData(initialFormData);
+            toast.success("Product add successfully"
+            );
+          }
+        });
+  
+  }
+
+  useEffect(() => {
+    dispatch(fetchAllProducts());
+  }, [dispatch]);
+
+  console.log(formData, "productList");
+  console.log(productList, "productList");
 
 
   return (
