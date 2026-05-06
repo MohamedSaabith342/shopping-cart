@@ -5,14 +5,15 @@ import { Button } from "../ui/button";
 import { useRef } from "react";
 import axios from "axios";
 import { useEffect } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 
 function ProductImageUpload({
   imageFile,
   setImageFile,
-  uploadedImageUrl,
   setUploadedImageUrl,
-  setImageLoadingState
+  setImageLoadingState,
+  imageLoadingState
 
 }) {
   const inputRef = useRef(null);
@@ -51,7 +52,9 @@ function ProductImageUpload({
     const response = await axios.post(
       "http://localhost:5000/api/admin/products/upload-image",
       data
+      
     );
+    setImageLoadingState(true);
     console.log(response, "response");
 
     if (response?.data?.success) {
@@ -64,6 +67,8 @@ function ProductImageUpload({
   useEffect(() => {
     if (imageFile !== null) uploadImageToCloudinary();
   }, [imageFile]);
+
+  console.log("imageloadingstate", imageLoadingState);
 
   
   return (
@@ -91,6 +96,8 @@ function ProductImageUpload({
             <span>Drag & drop or click to upload image</span>
           </Label>
         ) : (
+          imageLoadingState ?
+          <Skeleton className="h-20 bg-gray-100"/> :
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <FileIcon className="w-8 text-primary mr-2 h-8" />
