@@ -8,6 +8,7 @@ function AdminHeader({ setOpen }) {
 
   function handleLogout() {
     dispatch(logoutUser());
+    sessionStorage.removeItem("filters");
   }
 
   return (

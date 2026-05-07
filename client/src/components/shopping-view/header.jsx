@@ -38,6 +38,7 @@ function HeaderRightContent() {
 
   function handleLogout() {
     dispatch(logoutUser());
+    sessionStorage.removeItem("filters");
   }
 
   
