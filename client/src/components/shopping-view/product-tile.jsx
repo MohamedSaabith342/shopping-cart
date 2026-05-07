@@ -1,6 +1,8 @@
 import { Card, CardContent, CardFooter } from "../ui/card";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
+import { categoryOptionsMap,brandOptionsMap } from "@/config";
+
 
 function ShoppingProductTile({product}) {
   return (
@@ -29,8 +31,8 @@ function ShoppingProductTile({product}) {
         <CardContent className="p-4">
           <h2 className="text-xl font-bold mb-2">{product?.title}</h2>
           <div className="flex justify-between items-center mb-2">
-            <span className="text-[16px] text-muted-foreground">{product?.category}</span>
-            <span className="text-[16px] text-muted-foreground">{product?.brand}</span>
+            <span className="text-[16px] text-muted-foreground">{categoryOptionsMap[product?.category]}</span>
+            <span className="text-[16px] text-muted-foreground">{brandOptionsMap[product?.brand]}</span>
           </div>
           <div className="flex justify-between items-center mb-2">
             <span
