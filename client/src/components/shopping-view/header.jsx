@@ -36,7 +36,7 @@ function MenuItems() {
 }
 
 function HeaderRightContent() {
-  const { user, isAuthenticated } = useSelector((state) => state.auth);
+  const { user } = useSelector((state) => state.auth);
   const navigate = useNavigate();
   const {cartItems} = useSelector((state) => state.shopCart);
   const dispatch = useDispatch();

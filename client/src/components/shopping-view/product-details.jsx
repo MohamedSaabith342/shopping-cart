@@ -1,12 +1,42 @@
 import { Button } from "../ui/button";
 import { Dialog, DialogContent } from "../ui/dialog";
 import { Separator } from "../ui/separator";
+import { useDispatch, useSelector } from "react-redux";
+import { addToCart } from "@/store/shop/cart-slice";
+import { fetchCartItems } from "@/store/shop/cart-slice";
+import { toast } from "sonner";
+import { setProductDetails } from "@/store/shop/products-slice";
 
 
 function ProductDetailsDialog({ open, setOpen, productDetails }) {
+  const dispatch = useDispatch();
+  const user = useSelector((state) => state.auth.user);
+
+  function handleAddToCart(getCurrentProductId) {
+    console.log("Add to cart - productId product details page:", getCurrentProductId);
+    dispatch(
+      addToCart({
+        userId: user?.id,
+        productId: getCurrentProductId,
+        quantity: 1,
+      })
+    ).then((data) => {
+      if (data.payload.success) {
+        dispatch(fetchCartItems(user?.id));
+        toast.success("Product added to cart!");
+        
+      }
+    });
+  }
+
+  function handleDialogClose() {
+    setOpen(false);
+    dispatch(setProductDetails())
+  }
+
 
  return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleDialogClose}>
       <DialogContent className="grid grid-cols-2 gap-8 sm:p-12 max-w-[90vw] sm:max-w-[80vw] lg:max-w-[70vw]">
         <div className="relative overflow-hidden rounded-lg">
           <img
@@ -42,7 +72,7 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
             {productDetails?.totalStock === 0 ? (
               <Button className="w-full opacity-60 cursor-not-allowed">Out of Stock</Button>
             ) : (
-              <Button className="w-full">Add to Cart</Button>
+              <Button onClick={() => {handleAddToCart(productDetails?._id)}} className="w-full">Add to Cart</Button>
             )}
           </div>
           <Separator />
