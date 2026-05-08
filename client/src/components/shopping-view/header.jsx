@@ -17,6 +17,10 @@ import {
 } from "../ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "../ui/avatar";
 import { logoutUser } from "@/store/auth-slice";
+import UserCartWrapper from "./cart-wrapper";
+import { useState } from "react";
+import { fetchCartItems } from "@/store/shop/cart-slice";
+import { useEffect } from "react";
 
 
 
@@ -34,23 +38,50 @@ function MenuItems() {
 function HeaderRightContent() {
   const { user, isAuthenticated } = useSelector((state) => state.auth);
   const navigate = useNavigate();
+  const {cartItems} = useSelector((state) => state.shopCart);
   const dispatch = useDispatch();
+  const [openCartSheet, setOpenCartSheet] = useState(false);
+  console.log("HeaderRightContent: user:", user);
+  
 
   function handleLogout() {
     dispatch(logoutUser());
     sessionStorage.removeItem("filters");
   }
 
+  useEffect(() => {
+    dispatch(fetchCartItems(user?.id));
+    console.log("fetchCartItems dispatched for userId:", user?._id);
+  },[dispatch]);
+   console.log("cartItems in header right:", cartItems);
+
   
 
   return (
     <div className="flex lg:items-center lg:flex-row flex-col gap-4">
-        <Sheet>
-        <Button variant="outline" size="icon" >
-          <ShoppingCart className="w-6 h-6" />
-          <span className="sr-only">User cart</span>
-        </Button>
+        <Sheet open={openCartSheet} onOpenChange={() => setOpenCartSheet(false)}>
+          <Button
+            onClick={() => setOpenCartSheet(true)}
+            variant="outline"
+            size="icon"
+            className="relative"
+          >
+            <ShoppingCart className="w-6 h-6" />
+            <span className="absolute top-[-5px] right-[2px] font-bold text-sm">
+              {cartItems?.items?.length || 0}
+            </span>
+            <span className="sr-only">User cart</span>
+          </Button>
+          <UserCartWrapper
+            setOpenCartSheet={setOpenCartSheet}
+            cartItems={
+              cartItems && cartItems.items && cartItems.items.length > 0
+                ? cartItems.items
+                : []
+            }
+        />
         </Sheet>
+
         
 
       <DropdownMenu>

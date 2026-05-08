@@ -14,9 +14,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { sortOptions } from "@/config";
 import ShoppingProductTile from "@/components/shopping-view/product-tile";
-import { useSearchParams } from "react-router-dom";
+import { data, useSearchParams } from "react-router-dom";
 import { fetchProductDetails } from "@/store/shop/products-slice";
 import ProductDetailsDialog from "@/components/shopping-view/product-details";
+import { addToCart } from "@/store/shop/cart-slice";
+import { fetchCartItems } from "@/store/shop/cart-slice";
+import {toast} from "sonner";
+
 
 function createSearchParamsHelper(filterParams) {
   const queryParams = [];
@@ -39,12 +43,13 @@ function ShoppingListing() {
 
 
   const dispatch = useDispatch();
+  const {user} = useSelector((state) => state.auth);
   const {productList,productDetails} = useSelector((state) => state.shopProducts);
   const [filters, setFilters] = useState({});
   const [sort,setSort] = useState(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
-
+  console.log("shoppinglist userid:", user?.id);
 
   function handleGetProductDetails(getCurrentProductId) {
     console.log("getCurrentProductId:", getCurrentProductId);
@@ -80,6 +85,25 @@ function ShoppingListing() {
     setFilters(cpyFilters);
     sessionStorage.setItem("filters", JSON.stringify(cpyFilters));
   }
+
+  function handleAddToCart(getCurrentProductId) {
+    console.log("Add to cart - productId:", getCurrentProductId);
+    dispatch(
+      addToCart({
+        userId: user?.id,
+        productId: getCurrentProductId,
+        quantity: 1,
+      })
+    ).then((data) => {
+      if (data.payload.success) {
+        dispatch(fetchCartItems(user?.id));
+        toast.success("Product added to cart!");
+        
+      }
+    });
+  }
+
+  
 
   useEffect(() => {
     setSort("price-lowtohigh");
@@ -150,7 +174,7 @@ function ShoppingListing() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
           {productList && productList.length > 0
             ? productList.map((productItem) => (
-                <ShoppingProductTile product={productItem} handleGetProductDetails={handleGetProductDetails} />
+                <ShoppingProductTile product={productItem} handleGetProductDetails={handleGetProductDetails} handleAddToCart={handleAddToCart} />
               ))
             : null}
         </div>
