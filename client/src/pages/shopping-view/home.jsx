@@ -4,17 +4,17 @@ import bannerTwo from "../../assets/banner-2.webp";
 import bannerThree from "../../assets/banner-3.webp";
 import { Button } from "@/components/ui/button";
 import {ChevronLeftIcon,ChevronRightIcon,ShirtIcon,CloudLightning,BabyIcon
-,WatchIcon,UmbrellaIcon
+,WatchIcon,UmbrellaIcon,Shirt,WashingMachine,ShoppingBasket,Airplay,Images,Heater
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useState,useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchAllFilteredProducts } from "@/store/shop/products-slice";
+import ShoppingProductTile from "@/components/shopping-view/product-tile";
+import { useNavigate } from "react-router-dom";
+   
 
-
-function ShoppingHome() {
-  const slides =[bannerOne, bannerTwo, bannerThree];
-  const [currentSlide, setCurrentSlide] = useState(0);
-
-  const categoriesWithIcon = [
+ const categoriesWithIcon = [
   { id: "men", label: "Men", icon: ShirtIcon },
   { id: "women", label: "Women", icon: CloudLightning },
   { id: "kids", label: "Kids", icon: BabyIcon },
@@ -23,6 +23,38 @@ function ShoppingHome() {
 
 ];
 
+const brandsWithIcon = [
+  { id: "nike", label: "Nike", icon: Shirt },
+  { id: "adidas", label: "Adidas", icon: WashingMachine },
+  { id: "puma", label: "Puma", icon: ShoppingBasket },
+  { id: "levi", label: "Levi's", icon: Airplay },
+  { id: "zara", label: "Zara", icon: Images },
+  { id: "h&m", label: "H&M", icon: Heater },
+];
+
+
+function ShoppingHome() {
+  const slides =[bannerOne, bannerTwo, bannerThree];
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const { productList } = useSelector(
+    (state) => state.shopProducts
+  );
+
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  function handleNavigateToListingPage(getCurrentItem, section) {
+    sessionStorage.removeItem("filters");
+    const currentFilter = {
+      [section]: [getCurrentItem.id],
+    };
+
+    sessionStorage.setItem("filters", JSON.stringify(currentFilter));
+    navigate(`/shop/listing`);
+  }
+
+ 
+
 useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prevSlide) => (prevSlide + 1) % slides.length);
@@ -30,6 +62,17 @@ useEffect(() => {
 
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    dispatch(
+      fetchAllFilteredProducts({
+        filterParams: {},
+        sortParams: "price-lowtohigh",
+      })
+    );
+  }, [dispatch])
+
+  console.log("productList in shopping home:", productList);
   
 
 
@@ -85,9 +128,9 @@ useEffect(() => {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {categoriesWithIcon.map((categoryItem) => (
               <Card
-                // onClick={() =>
-                //   handleNavigateToListingPage(categoryItem, "category")
-                // }
+                onClick={() =>
+                  handleNavigateToListingPage(categoryItem, "category")
+                }
                 className="cursor-pointer hover:shadow-lg transition-shadow"
               >
                 <CardContent className="flex flex-col items-center justify-center p-6">
@@ -100,7 +143,7 @@ useEffect(() => {
         </div>
       </section>
 
-      {/* <section className="py-12 bg-gray-50"> 
+      <section className="py-12 bg-gray-50"> 
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-8">Shop by Brand</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -128,20 +171,20 @@ useEffect(() => {
             {productList && productList.length > 0
               ? productList.map((productItem) => (
                   <ShoppingProductTile
-                    handleGetProductDetails={handleGetProductDetails}
+                    
                     product={productItem}
-                    handleAddtoCart={handleAddtoCart}
+                    
                   />
                 ))
               : null}
           </div>
         </div>
       </section>
-      <ProductDetailsDialog
+      {/* <ProductDetailsDialog
         open={openDetailsDialog}
         setOpen={setOpenDetailsDialog}
         productDetails={productDetails}
-      />  */}
+      />   */}
     </div>
   );
 }

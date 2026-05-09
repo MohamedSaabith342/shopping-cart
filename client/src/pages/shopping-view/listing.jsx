@@ -20,6 +20,7 @@ import ProductDetailsDialog from "@/components/shopping-view/product-details";
 import { addToCart } from "@/store/shop/cart-slice";
 import { fetchCartItems } from "@/store/shop/cart-slice";
 import {toast} from "sonner";
+import { useLocation } from "react-router-dom";
 
 
 function createSearchParamsHelper(filterParams) {
@@ -41,6 +42,8 @@ function createSearchParamsHelper(filterParams) {
 
 function ShoppingListing() {
 
+  console.log("this is shopping listing page");
+
 
   const dispatch = useDispatch();
   const {user} = useSelector((state) => state.auth);
@@ -49,7 +52,9 @@ function ShoppingListing() {
   const [sort,setSort] = useState(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
+  const location = useLocation();
   console.log("shoppinglist userid:", user?.id);
+
 
   function handleGetProductDetails(getCurrentProductId) {
     console.log("getCurrentProductId:", getCurrentProductId);
@@ -58,7 +63,7 @@ function ShoppingListing() {
   console.log("productDetails:", productDetails);
 
   
-
+  
   function handleSort(value) {  
     console.log("Selected sort option:", value);
     setSort(value);
@@ -109,7 +114,11 @@ function ShoppingListing() {
     setSort("price-lowtohigh");
     console.log("filters from sessionStorage:", JSON.parse(sessionStorage.getItem("filters")));
     setFilters(JSON.parse(sessionStorage.getItem("filters")) || {});
-  }, []);
+  }, [searchParams]);
+
+    
+
+   
 
     useEffect(() => {
     if (filters !== null && sort !== null)
