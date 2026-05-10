@@ -12,6 +12,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchAllFilteredProducts } from "@/store/shop/products-slice";
 import ShoppingProductTile from "@/components/shopping-view/product-tile";
 import { useNavigate } from "react-router-dom";
+import { fetchProductDetails } from "@/store/shop/products-slice";
+import { addToCart } from "@/store/shop/cart-slice";
+import { toast } from "sonner";
+import { fetchCartItems } from "@/store/shop/cart-slice";
+
+import ProductDetailsDialog from "@/components/shopping-view/product-details";
    
 
  const categoriesWithIcon = [
@@ -36,9 +42,12 @@ const brandsWithIcon = [
 function ShoppingHome() {
   const slides =[bannerOne, bannerTwo, bannerThree];
   const [currentSlide, setCurrentSlide] = useState(0);
-  const { productList } = useSelector(
+  const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
+  const { productList,productDetails } = useSelector(
     (state) => state.shopProducts
   );
+
+  const { user } = useSelector((state) => state.auth);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -51,6 +60,26 @@ function ShoppingHome() {
 
     sessionStorage.setItem("filters", JSON.stringify(currentFilter));
     navigate(`/shop/listing`);
+  }
+
+  function handleGetProductDetails(getCurrentProductId) {
+    dispatch(fetchProductDetails(getCurrentProductId));
+  }
+
+  function handleAddtoCart(getCurrentProductId) {
+    dispatch(
+      addToCart({
+        userId: user?.id,
+        productId: getCurrentProductId,
+        quantity: 1,
+      })
+    ).then((data) => {
+      if (data?.payload?.success) {
+        dispatch(fetchCartItems(user?.id));
+        toast("Product is added to cart"
+        );
+      }
+    });
   }
 
  
@@ -71,6 +100,12 @@ useEffect(() => {
       })
     );
   }, [dispatch])
+
+  useEffect(() => {
+    if (productDetails !== null) {
+      setOpenDetailsDialog(true);
+    }
+  }, [productDetails]);
 
   console.log("productList in shopping home:", productList);
   
@@ -173,6 +208,9 @@ useEffect(() => {
                   <ShoppingProductTile
                     
                     product={productItem}
+                    handleGetProductDetails={handleGetProductDetails}
+                    handleAddToCart={handleAddtoCart}
+                   
                     
                   />
                 ))
@@ -180,11 +218,11 @@ useEffect(() => {
           </div>
         </div>
       </section>
-      {/* <ProductDetailsDialog
+      <ProductDetailsDialog
         open={openDetailsDialog}
         setOpen={setOpenDetailsDialog}
         productDetails={productDetails}
-      />   */}
+      />  
     </div>
   );
 }
