@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import CommonForm from "../common/form";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Card, CardContent, CardHeader, CardTitle} from "../ui/card";
 import { addressFormControls } from "@/config";
 import { useDispatch, useSelector } from "react-redux";
 import { addNewAddress } from "@/store/shop/address-slice";
@@ -85,6 +85,7 @@ function Address() {
           
         />
       </CardContent>
+  
     </Card>
   );
 }

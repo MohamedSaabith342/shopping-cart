@@ -1,6 +1,8 @@
 
 import { Card, CardContent, CardFooter } from "../ui/card";
 import { Label } from "../ui/label";
+import { Button } from "../ui/button";
+
 
 function AddressCard({
   addressInfo,
@@ -22,7 +24,8 @@ function AddressCard({
         <Label>Notes: {addressInfo?.notes}</Label>
       </CardContent>
       <CardFooter className="p-3 flex justify-between">
-        
+        <Button>Edit</Button>
+        <Button>Delete</Button>
       </CardFooter>
     </Card>
   );
