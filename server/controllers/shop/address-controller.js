@@ -1,11 +1,23 @@
 const Address = require("../../models/Address");
+console.log("ADDRESS CONTROLLER FILE LOADED");
+
 
 const addAddress = async (req, res) => {
+    
   try {
+    console.log("BODY:", req.body);
     const { userId, address, city, pincode, phone, notes } = req.body;
+    if (!userId) console.log("❌ userId missing");
+    if (!address) console.log("❌ address missing");
+    if (!city) console.log("❌ city missing");
+    if (!pincode) console.log("❌ pincode missing");
+    if (!phone) console.log("❌ phone missing");
+    if (!notes) console.log("❌ notes missing");
 
     if (!userId || !address || !city || !pincode || !phone || !notes) {
+    
       return res.status(400).json({
+        
         success: false,
         message: "Invalid data provided!",
       });

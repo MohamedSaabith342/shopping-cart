@@ -9,6 +9,7 @@ const registerUser = async (req, res) => {
   const { userName, email, password } = req.body;
 
   try {
+    console.log("Registering user with data:", { userName, email });
     const checkUser = await User.findOne({ email });
     if (checkUser)
       return res.json({

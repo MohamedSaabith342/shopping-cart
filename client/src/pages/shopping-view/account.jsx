@@ -1,8 +1,10 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import accImg from "../../assets/account.jpg";
+import Address from "@/components/shopping-view/address";
 
 
 function ShoppingAccount() {
+  console.log("ShoppingAccount component rendered");
   return (
     <div className="flex flex-col">
       <div className="relative h-[300px] w-full overflow-hidden">
@@ -22,7 +24,7 @@ function ShoppingAccount() {
               
             </TabsContent>
             <TabsContent value="address">
-              
+              <Address />
             </TabsContent>
           </Tabs>
         </div>
