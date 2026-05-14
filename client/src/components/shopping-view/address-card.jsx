@@ -6,6 +6,8 @@ import { Button } from "../ui/button";
 
 function AddressCard({
   addressInfo,
+  handleDeleteAddress,
+  handleEditAddress
   
 }) 
 
@@ -24,8 +26,8 @@ function AddressCard({
         <Label>Notes: {addressInfo?.notes}</Label>
       </CardContent>
       <CardFooter className="p-3 flex justify-between">
-        <Button>Edit</Button>
-        <Button>Delete</Button>
+        <Button onClick={() => handleEditAddress(addressInfo)}>Edit</Button>
+        <Button onClick={() => handleDeleteAddress(addressInfo)}>Delete</Button>
       </CardFooter>
     </Card>
   );

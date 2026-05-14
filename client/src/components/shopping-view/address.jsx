@@ -3,10 +3,16 @@ import CommonForm from "../common/form";
 import { Card, CardContent, CardHeader, CardTitle} from "../ui/card";
 import { addressFormControls } from "@/config";
 import { useDispatch, useSelector } from "react-redux";
-import { addNewAddress } from "@/store/shop/address-slice";
+
 import { toast } from "sonner";
-import { fetchAllAddresses } from "@/store/shop/address-slice";
+import {
+  addNewAddress,
+  deleteAddress,
+  editaAddress,
+  fetchAllAddresses,
+} from "@/store/shop/address-slice";
 import AddressCard from "./address-card";
+
 
 
 
@@ -21,6 +27,7 @@ const initialAddressFormData = {
 
 function Address() {
   const [formData, setFormData] = useState(initialAddressFormData);
+  const [currentEditedId, setCurrentEditedId] = useState(null);
   const dispatch = useDispatch();
   const {user} = useSelector((state) => state.auth);
    const { addressList } = useSelector((state) => state.shopAddress);
@@ -33,7 +40,25 @@ function Address() {
 
   function handleManageAddress(event) {
     event.preventDefault();
-    dispatch(
+    
+    currentEditedId !== null
+      ? dispatch(
+          editaAddress({
+            userId: user?.id,
+            addressId: currentEditedId,
+            formData,
+          })
+        ).then((data) => {
+          if (data?.payload?.success) {
+            dispatch(fetchAllAddresses(user?.id));
+            setCurrentEditedId(null);
+            setFormData(initialAddressFormData);
+            toast(
+              "Address updated successfully"
+            );
+          }
+        })
+      : dispatch(
           addNewAddress({
             ...formData,
             userId: user?.id,
@@ -42,13 +67,37 @@ function Address() {
           if (data?.payload?.success) {
             dispatch(fetchAllAddresses(user?.id));
             setFormData(initialAddressFormData);
-            toast.success(
-              "Address added successfully",
+            toast(
+              "Address added successfully"
             );
           }
-      });
+        });
 
    }
+
+   function handleDeleteAddress(getCurrentAddress) {
+    console.log("current address",getCurrentAddress);
+    dispatch(
+      deleteAddress({ userId: user?.id, addressId: getCurrentAddress._id })
+    ).then((data) => {
+      if (data?.payload?.success) {
+        dispatch(fetchAllAddresses(user?.id));
+        toast("Address deleted successfully");
+      }
+    });
+  }
+
+  function handleEditAddress(getCuurentAddress) {
+    setCurrentEditedId(getCuurentAddress?._id);
+    setFormData({
+      ...formData,
+      address: getCuurentAddress?.address,
+      city: getCuurentAddress?.city,
+      phone: getCuurentAddress?.phone,
+      pincode: getCuurentAddress?.pincode,
+      notes: getCuurentAddress?.notes,
+    });
+  }
 
    useEffect(() => {
     dispatch(fetchAllAddresses(user?.id));
@@ -64,6 +113,10 @@ function Address() {
               <AddressCard
                 
                 addressInfo={singleAddressItem}
+                handleDeleteAddress={handleDeleteAddress}
+                setFormData = {setFormData}
+                setCurrentEditedId = {setCurrentEditedId}
+                handleEditAddress={handleEditAddress}
                
               />
             ))
@@ -71,7 +124,7 @@ function Address() {
       </div>
       <CardHeader>
         <CardTitle>
-          Add New Address
+          {currentEditedId !==null ? "Edit Address": "Add New Address"}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -79,7 +132,7 @@ function Address() {
           formControls={addressFormControls}
           formData={formData}
           setFormData={setFormData}
-          buttonText={"Add"}
+          buttonText={currentEditedId !==null ? "Edit": "Add"}
           onSubmit={handleManageAddress}
           isBtnDisabled={!isFormValid()}
           
