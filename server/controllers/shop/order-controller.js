@@ -146,3 +146,5 @@ const capturePayment = async (req, res) => {
     });
   }
 };
+
+module.exports = {createOrder, capturePayment}
