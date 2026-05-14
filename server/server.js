@@ -7,6 +7,7 @@ const adminProductsRouter = require("./routes/admin/product-routes");
 const shopProductsRouter = require("./routes/shop/products-routes");
 const shopCartRouter = require("./routes/shop/cart-routes");
 const shopAddressRouter = require("./routes/shop/address-routes");
+const shopOrderRouter = require("./routes/shop/order-routes");
 
 // create database connection -> we can also craete a separate file for this and import it here
 mongoose.connect("mongodb://mohamedsaabith1010_db_user:saabith123@ac-rohld23-shard-00-00.62mtyzw.mongodb.net:27017,ac-rohld23-shard-00-01.62mtyzw.mongodb.net:27017,ac-rohld23-shard-00-02.62mtyzw.mongodb.net:27017/?ssl=true&replicaSet=atlas-zq6pcn-shard-0&authSource=admin&appName=Cluster1").
@@ -38,6 +39,8 @@ app.use("/api/admin/products", adminProductsRouter);
 app.use("/api/shop/products", shopProductsRouter);
 app.use("/api/shop/cart", shopCartRouter);
 app.use("/api/shop/address", shopAddressRouter);
+app.use("/api/shop/order", shopOrderRouter);
+
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 }); 
