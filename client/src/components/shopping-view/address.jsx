@@ -40,6 +40,16 @@ function Address() {
 
   function handleManageAddress(event) {
     event.preventDefault();
+
+    if (addressList.length >= 3 && currentEditedId === null) {
+      setFormData(initialAddressFormData);
+      toast.error(
+        "You can add max 3 addresses"
+       
+      );
+
+      return;
+    }
     
     currentEditedId !== null
       ? dispatch(
