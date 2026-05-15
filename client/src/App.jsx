@@ -21,6 +21,7 @@ import { useSelector } from "react-redux";
 import { useDispatch } from "react-redux";
 import { useEffect } from "react";
 import { checkAuth } from "./store/auth-slice";
+import PaypalReturnPage from "./pages/shopping-view/paypal-return";
 
 
 function App() {
@@ -62,6 +63,7 @@ function App() {
           <Route path="products" element={<AdminProducts />} />
           <Route path="orders" element={<AdminOrders />} />
           <Route path="features" element={<AdminFeatures />} />
+          
         </Route>
 
         <Route path="/shop" element={
@@ -72,7 +74,8 @@ function App() {
           <Route path="home" element={<ShoppingHome />} />
           <Route path="listing" element={<ShoppingListing />} />
           <Route path="account" element={<ShoppingAccount />} />
-          <Route path="checkout" element={<ShoppingCheckout />} />  
+          <Route path="checkout" element={<ShoppingCheckout />} /> 
+          <Route path="paypal-return" element={<PaypalReturnPage />} />
         </Route>
         <Route path="/unauth-page" element={<UnauthPage />} />
         <Route path="*" element={<h1>404 Not Found</h1>}/>
