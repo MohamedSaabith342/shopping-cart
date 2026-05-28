@@ -12,31 +12,31 @@ function UserCartItemsContent({ cartItem }) {
 
 
   function handleUpdateQuantity(getCartItem, typeOfAction) {
-    // if (typeOfAction == "plus") {
-    //   let getCartItems = cartItems.items || [];
+    if (typeOfAction == "plus") {
+      let getCartItems = cartItems.items || [];
 
-    //   if (getCartItems.length) {
-    //     const indexOfCurrentCartItem = getCartItems.findIndex(
-    //       (item) => item.productId === getCartItem?.productId
-    //     );
+      if (getCartItems.length) {
+        const indexOfCurrentCartItem = getCartItems.findIndex(
+          (item) => item.productId === getCartItem?.productId
+        );
 
-    //     const getCurrentProductIndex = productList.findIndex(
-    //       (product) => product._id === getCartItem?.productId
-    //     );
-    //     const getTotalStock = productList[getCurrentProductIndex].totalStock;
+        const getCurrentProductIndex = productList.findIndex(
+          (product) => product._id === getCartItem?.productId
+        );
+        const getTotalStock = productList[getCurrentProductIndex].totalStock;
 
-    //     console.log(getCurrentProductIndex, getTotalStock, "getTotalStock");
+        console.log(getCurrentProductIndex, getTotalStock, "getTotalStock");
 
-    //     if (indexOfCurrentCartItem > -1) {
-    //       const getQuantity = getCartItems[indexOfCurrentCartItem].quantity;
-    //       if (getQuantity + 1 > getTotalStock) {
-    //         toast.success(`Only ${getQuantity} quantity can be added for this item`,);
+        if (indexOfCurrentCartItem > -1) {
+          const getQuantity = getCartItems[indexOfCurrentCartItem].quantity;
+          if (getQuantity + 1 > getTotalStock) {
+            toast.success(`Only ${getQuantity} quantity can be added for this item`,);
 
-    //         return;
-    //       }
-    //     }
-    //   }
-    // }
+            return;
+          }
+        }
+      }
+    }
 
     dispatch(
       updateCartQuantity({

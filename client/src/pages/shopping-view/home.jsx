@@ -209,7 +209,7 @@ useEffect(() => {
                     
                     product={productItem}
                     handleGetProductDetails={handleGetProductDetails}
-                    handleAddToCart={handleAddtoCart}
+                    handleAddtoCart={handleAddtoCart}
                    
                     
                   />

@@ -4,7 +4,7 @@ import { Badge } from "../ui/badge";
 import { categoryOptionsMap,brandOptionsMap } from "@/config";
 
 
-function ShoppingProductTile({product, handleGetProductDetails, handleAddToCart}) {
+function ShoppingProductTile({product, handleGetProductDetails, handleAddtoCart}) {
   return (
     <Card className="w-full max-w-sm mx-auto">
       <div onClick={() => handleGetProductDetails(product?._id) } >
@@ -51,10 +51,20 @@ function ShoppingProductTile({product, handleGetProductDetails, handleAddToCart}
         </CardContent>
       </div>
       <CardFooter>
-    
-          <Button onClick={() => handleAddToCart(product?._id)}> Add to cart</Button>
-       
+        {product?.totalStock === 0 ? (
+          <Button className="w-full opacity-60 cursor-not-allowed">
+            Out Of Stock
+          </Button>
+        ) : (
+          <Button
+            onClick={() => handleAddtoCart(product?._id, product?.totalStock)}
+            className="w-full"
+          >
+            Add to cart
+          </Button>
+        )}
       </CardFooter>
+      
     </Card>
   );
 }

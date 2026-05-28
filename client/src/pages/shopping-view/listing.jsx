@@ -47,13 +47,15 @@ function ShoppingListing() {
 
   const dispatch = useDispatch();
   const {user} = useSelector((state) => state.auth);
+  const {cartItems} = useSelector((state) => state.shopCart);
   const {productList,productDetails} = useSelector((state) => state.shopProducts);
   const [filters, setFilters] = useState({});
   const [sort,setSort] = useState(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
-  const location = useLocation();
-  console.log("shoppinglist userid:", user?.id);
+  
+  
+  console.log("product details all",productList);
 
 
   function handleGetProductDetails(getCurrentProductId) {
@@ -91,8 +93,24 @@ function ShoppingListing() {
     sessionStorage.setItem("filters", JSON.stringify(cpyFilters));
   }
 
-  function handleAddToCart(getCurrentProductId) {
-    console.log("Add to cart - productId:", getCurrentProductId);
+  function handleAddtoCart(getCurrentProductId, getTotalStock) {
+    console.log(cartItems);
+    let getCartItems = cartItems.items || [];
+
+    if (getCartItems.length) {
+      const indexOfCurrentItem = getCartItems.findIndex(
+        (item) => item.productId === getCurrentProductId
+      );
+      if (indexOfCurrentItem > -1) {
+        const getQuantity = getCartItems[indexOfCurrentItem].quantity;
+        if (getQuantity + 1 > getTotalStock) {
+          toast(`Only ${getQuantity} quantity can be added for this item`);
+
+          return;
+        }
+      }
+    }
+
     dispatch(
       addToCart({
         userId: user?.id,
@@ -100,10 +118,11 @@ function ShoppingListing() {
         quantity: 1,
       })
     ).then((data) => {
-      if (data.payload.success) {
+      if (data?.payload?.success) {
         dispatch(fetchCartItems(user?.id));
-        toast.success("Product added to cart!");
-        
+        toast(
+          "Product is added to cart"
+        );
       }
     });
   }
@@ -183,7 +202,11 @@ function ShoppingListing() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
           {productList && productList.length > 0
             ? productList.map((productItem) => (
-                <ShoppingProductTile product={productItem} handleGetProductDetails={handleGetProductDetails} handleAddToCart={handleAddToCart} />
+                <ShoppingProductTile
+                  handleGetProductDetails={handleGetProductDetails}
+                  product={productItem}
+                  handleAddtoCart={handleAddtoCart}
+                />
               ))
             : null}
         </div>

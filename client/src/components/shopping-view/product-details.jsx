@@ -11,9 +11,24 @@ import { setProductDetails } from "@/store/shop/products-slice";
 function ProductDetailsDialog({ open, setOpen, productDetails }) {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
+  const cartItems = useSelector((state) => state.shopCart.cartItems);
 
-  function handleAddToCart(getCurrentProductId) {
-    console.log("Add to cart - productId product details page:", getCurrentProductId);
+  function handleAddToCart(getCurrentProductId, getTotalStock) {
+    let getCartItems = cartItems.items || [];
+
+    if (getCartItems.length) {
+      const indexOfCurrentItem = getCartItems.findIndex(
+        (item) => item.productId === getCurrentProductId
+      );
+      if (indexOfCurrentItem > -1) {
+        const getQuantity = getCartItems[indexOfCurrentItem].quantity;
+        if (getQuantity + 1 > getTotalStock) {
+          toast(`Only ${getQuantity} quantity can be added for this item`);
+
+          return;
+        }
+      }
+    }
     dispatch(
       addToCart({
         userId: user?.id,
@@ -21,10 +36,11 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
         quantity: 1,
       })
     ).then((data) => {
-      if (data.payload.success) {
+      if (data?.payload?.success) {
         dispatch(fetchCartItems(user?.id));
-        toast.success("Product added to cart!");
-        
+        toast(
+          "Product is added to cart"
+        );
       }
     });
   }
@@ -70,9 +86,21 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
           </div>
           <div className="mt-5 mb-5">
             {productDetails?.totalStock === 0 ? (
-              <Button className="w-full opacity-60 cursor-not-allowed">Out of Stock</Button>
+              <Button className="w-full opacity-60 cursor-not-allowed">
+                Out of Stock
+              </Button>
             ) : (
-              <Button onClick={() => {handleAddToCart(productDetails?._id)}} className="w-full">Add to Cart</Button>
+              <Button
+                className="w-full"
+                onClick={() =>
+                  handleAddToCart(
+                    productDetails?._id,
+                    productDetails?.totalStock
+                  )
+                }
+              >
+                Add to Cart
+              </Button>
             )}
           </div>
           <Separator />
