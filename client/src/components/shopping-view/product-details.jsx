@@ -6,12 +6,25 @@ import { addToCart } from "@/store/shop/cart-slice";
 import { fetchCartItems } from "@/store/shop/cart-slice";
 import { toast } from "sonner";
 import { setProductDetails } from "@/store/shop/products-slice";
+import StarRatingComponent from "../common/star-rating";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { useState } from "react";
 
 
 function ProductDetailsDialog({ open, setOpen, productDetails }) {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
+  const [rating, setRating] = useState(0);
+  const [reviewMsg, setReviewMsg] = useState("");
   const cartItems = useSelector((state) => state.shopCart.cartItems);
+
+
+  function handleRatingChange(getRating) {
+    console.log(getRating, "getRating");
+
+    setRating(getRating);
+  }
 
   function handleAddToCart(getCurrentProductId, getTotalStock) {
     let getCartItems = cartItems.items || [];
@@ -104,6 +117,26 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
             )}
           </div>
           <Separator />
+           <div className="mt-10 flex-col flex gap-2">
+              <Label>Write a review</Label>
+              <div className="flex gap-1">
+                <StarRatingComponent
+                  rating={rating}
+                  handleRatingChange={handleRatingChange}
+                />
+              </div>
+              <Input
+                name="reviewMsg"
+                value={reviewMsg}
+                onChange={(event) => setReviewMsg(event.target.value)}
+                placeholder="Write a review..."
+              />
+              <Button
+                
+              >
+                Submit
+              </Button>
+            </div>
         </div>
       </DialogContent>
     </Dialog>

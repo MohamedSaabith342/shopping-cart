@@ -9,6 +9,7 @@ import shopSearchSlice from "./shop/search-slice";
 import adminOrderSlice from "./admin/order-slice";
 import shopReviewSlice from "./shop/review-slice";
 
+
 const store = configureStore({
     reducer : {
         auth : authReducer,
@@ -20,6 +21,7 @@ const store = configureStore({
         shopOrder: shopOrderSlice,
         shopSearch: shopSearchSlice,
         shopReview: shopReviewSlice,
+        
     },
 })
 
