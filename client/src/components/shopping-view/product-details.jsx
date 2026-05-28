@@ -10,6 +10,7 @@ import StarRatingComponent from "../common/star-rating";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { useState } from "react";
+import { addReview, getReviews } from "@/store/shop/review-slice";
 
 
 function ProductDetailsDialog({ open, setOpen, productDetails }) {
@@ -24,6 +25,34 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
     console.log(getRating, "getRating");
 
     setRating(getRating);
+  }
+
+  function handleDialogClose() {
+    setOpen(false);
+    dispatch(setProductDetails());
+    setRating(0);
+    setReviewMsg("");
+  }
+
+  function handleAddReview() {
+    dispatch(
+      addReview({
+        productId: productDetails?._id,
+        userId: user?.id,
+        userName: user?.userName,
+        reviewMessage: reviewMsg,
+        reviewValue: rating,
+      })
+    ).then((data) => {
+      if (data.payload.success) {
+        setRating(0);
+        setReviewMsg("");
+        dispatch(getReviews(productDetails?._id));
+        toast(
+          "Review added successfully!"
+        );
+      }
+    });
   }
 
   function handleAddToCart(getCurrentProductId, getTotalStock) {
@@ -58,10 +87,7 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
     });
   }
 
-  function handleDialogClose() {
-    setOpen(false);
-    dispatch(setProductDetails())
-  }
+  
 
 
  return (
@@ -132,7 +158,8 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
                 placeholder="Write a review..."
               />
               <Button
-                
+                onClick={handleAddReview}
+                disabled={reviewMsg.trim() === ""}
               >
                 Submit
               </Button>
