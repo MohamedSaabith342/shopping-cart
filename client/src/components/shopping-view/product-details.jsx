@@ -9,8 +9,9 @@ import { setProductDetails } from "@/store/shop/products-slice";
 import StarRatingComponent from "../common/star-rating";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { addReview, getReviews } from "@/store/shop/review-slice";
+import { Avatar, AvatarFallback } from "../ui/avatar";
 
 
 function ProductDetailsDialog({ open, setOpen, productDetails }) {
@@ -19,6 +20,7 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
   const [rating, setRating] = useState(0);
   const [reviewMsg, setReviewMsg] = useState("");
   const cartItems = useSelector((state) => state.shopCart.cartItems);
+  const { reviews } = useSelector((state) => state.shopReview);
 
 
   function handleRatingChange(getRating) {
@@ -89,6 +91,18 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
 
   
 
+    useEffect(() => {
+      if (productDetails !== null) dispatch(getReviews(productDetails?._id));
+    }, [productDetails]);
+
+    const averageReview =
+    reviews && reviews.length > 0
+      ? reviews.reduce((sum, reviewItem) => sum + reviewItem.reviewValue, 0) /
+        reviews.length
+      : 0;
+
+  
+
 
  return (
     <Dialog open={open} onOpenChange={handleDialogClose}>
@@ -123,6 +137,14 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
               </p>
             ) : null}
           </div>
+          <div className="flex items-center gap-2 mt-2">
+            <div className="flex items-center gap-0.5">
+              <StarRatingComponent rating={averageReview} />
+            </div>
+            <span className="text-muted-foreground">
+              ({averageReview.toFixed(2)})
+            </span>
+          </div>
           <div className="mt-5 mb-5">
             {productDetails?.totalStock === 0 ? (
               <Button className="w-full opacity-60 cursor-not-allowed">
@@ -143,7 +165,35 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
             )}
           </div>
           <Separator />
-           <div className="mt-10 flex-col flex gap-2">
+           <div className="max-h-[300px] overflow-auto">
+            <h2 className="text-xl font-bold mb-4">Reviews</h2>
+            <div className="grid gap-6">
+              {reviews && reviews.length > 0 ? (
+                reviews.map((reviewItem) => (
+                  <div className="flex gap-4">
+                    <Avatar className="w-10 h-10 border">
+                      <AvatarFallback>
+                        {reviewItem?.userName[0].toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="grid gap-1">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-bold">{reviewItem?.userName}</h3>
+                      </div>
+                      <div className="flex items-center gap-0.5">
+                        <StarRatingComponent rating={reviewItem?.reviewValue} />
+                      </div>
+                      <p className="text-muted-foreground">
+                        {reviewItem.reviewMessage}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <h1>No Reviews</h1>
+              )}
+            </div>
+            <div className="mt-10 flex-col flex gap-2">
               <Label>Write a review</Label>
               <div className="flex gap-1">
                 <StarRatingComponent
@@ -164,6 +214,7 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
                 Submit
               </Button>
             </div>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
