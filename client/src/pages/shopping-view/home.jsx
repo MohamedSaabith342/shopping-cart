@@ -16,7 +16,7 @@ import { fetchProductDetails } from "@/store/shop/products-slice";
 import { addToCart } from "@/store/shop/cart-slice";
 import { toast } from "sonner";
 import { fetchCartItems } from "@/store/shop/cart-slice";
-
+import { getFeatureImages } from "@/store/common-slice";
 import ProductDetailsDialog from "@/components/shopping-view/product-details";
    
 
@@ -48,6 +48,7 @@ function ShoppingHome() {
   );
 
   const { user } = useSelector((state) => state.auth);
+  const { featureImageList } = useSelector((state) => state.commonFeature);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -84,13 +85,13 @@ function ShoppingHome() {
 
  
 
-useEffect(() => {
+ useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentSlide((prevSlide) => (prevSlide + 1) % slides.length);
-    }, 2000);
+      setCurrentSlide((prevSlide) => (prevSlide + 1) % featureImageList.length);
+    }, 15000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [featureImageList]);
 
   useEffect(() => {
     dispatch(
@@ -109,22 +110,26 @@ useEffect(() => {
 
   console.log("productList in shopping home:", productList);
   
+  useEffect(() => {
+    dispatch(getFeatureImages());
+  }, [dispatch]);
 
 
 
   return (
     <div className="flex flex-col min-h-screen">
       <div className="relative w-full h-[600px] overflow-hidden">
-        {
-          slides.map((slide, index) => <img
-                src={slide}
+        {featureImageList && featureImageList.length > 0
+          ? featureImageList.map((slide, index) => (
+              <img
+                src={slide?.image}
                 key={index}
                 className={`${
                   index === currentSlide ? "opacity-100" : "opacity-0"
                 } absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-1000`}
               />
-        )
-        }
+            ))
+          : null}
 
         <Button
           variant="outline"
