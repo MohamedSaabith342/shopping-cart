@@ -18,21 +18,22 @@ import {
   resetOrderDetails,
 } from "@/store/shop/order-slice";
 import { Badge } from "../ui/badge";
+import { Package, Eye } from "lucide-react";
 
 function ShoppingOrders() {
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
-  const { orderList, orderDetails } = useSelector(
-    (state) => state.shopOrder
-  );
+  const { orderList, orderDetails } = useSelector((state) => state.shopOrder);
 
   function handleFetchOrderDetails(id) {
     dispatch(getOrderDetails(id));
   }
 
   useEffect(() => {
-    dispatch(getAllOrdersByUserId(user?.id));
+    if (user?.id) {
+      dispatch(getAllOrdersByUserId(user?.id));
+    }
   }, [dispatch, user?.id]);
 
   useEffect(() => {
@@ -40,13 +41,15 @@ function ShoppingOrders() {
   }, [orderDetails]);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Order History</CardTitle>
+    <Card className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm overflow-hidden">
+      <CardHeader className="border-b border-zinc-200/80 dark:border-zinc-800 p-5">
+        <CardTitle className="text-base font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2 font-heading">
+          <Package className="w-4 h-4 text-emerald-600" />
+          <span>Order History</span>
+        </CardTitle>
       </CardHeader>
 
-      <CardContent>
-        {/* ✅ ONE Dialog wraps everything */}
+      <CardContent className="p-0">
         <Dialog
           open={openDetailsDialog}
           onOpenChange={(open) => {
@@ -54,57 +57,79 @@ function ShoppingOrders() {
             if (!open) dispatch(resetOrderDetails());
           }}
         >
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Order ID</TableHead>
-                <TableHead>Order Date</TableHead>
-                <TableHead>Order Status</TableHead>
-                <TableHead>Order Price</TableHead>
-                <TableHead />
-              </TableRow>
-            </TableHeader>
-
-            <TableBody>
-              {orderList?.map((orderItem) => (
-                <TableRow key={orderItem._id}>
-                  <TableCell>{orderItem._id}</TableCell>
-                  <TableCell>
-                    {orderItem.orderDate.split("T")[0]}
-                  </TableCell>
-
-                  <TableCell>
-                    <Badge
-                      className={`py-1 px-3 ${
-                        orderItem.orderStatus === "confirmed"
-                          ? "bg-green-500"
-                          : orderItem.orderStatus === "rejected"
-                          ? "bg-red-600"
-                          : "bg-black"
-                      }`}
-                    >
-                      {orderItem.orderStatus}
-                    </Badge>
-                  </TableCell>
-
-                  <TableCell>${orderItem.totalAmount}</TableCell>
-
-                  <TableCell>
-                    <Button
-                      onClick={(e) => {
-                        e.currentTarget.blur(); // ✅ fixes focus issue
-                        handleFetchOrderDetails(orderItem._id);
-                      }}
-                    >
-                      View Details
-                    </Button>
-                  </TableCell>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader className="bg-zinc-50 dark:bg-zinc-900/80">
+                <TableRow className="border-b border-zinc-200/80 dark:border-zinc-800">
+                  <TableHead className="text-xs font-bold text-zinc-700 dark:text-zinc-300">Order ID</TableHead>
+                  <TableHead className="text-xs font-bold text-zinc-700 dark:text-zinc-300">Date</TableHead>
+                  <TableHead className="text-xs font-bold text-zinc-700 dark:text-zinc-300">Status</TableHead>
+                  <TableHead className="text-xs font-bold text-zinc-700 dark:text-zinc-300">Price</TableHead>
+                  <TableHead className="text-right text-xs font-bold text-zinc-700 dark:text-zinc-300">Action</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
 
-          {/* ✅ SINGLE dialog content */}
+              <TableBody>
+                {orderList && orderList.length > 0 ? (
+                  orderList.map((orderItem) => {
+                    const isConfirmed = orderItem.orderStatus === "confirmed" || orderItem.orderStatus === "delivered";
+                    const isRejected = orderItem.orderStatus === "rejected";
+
+                    return (
+                      <TableRow key={orderItem._id} className="border-b border-zinc-100 dark:border-zinc-800/60 hover:bg-zinc-50/50 dark:hover:bg-zinc-950/40">
+                        <TableCell className="font-mono text-xs text-zinc-900 dark:text-zinc-100">
+                          {orderItem._id}
+                        </TableCell>
+                        <TableCell className="text-xs text-zinc-600 dark:text-zinc-400">
+                          {orderItem.orderDate?.split("T")[0]}
+                        </TableCell>
+
+                        <TableCell>
+                          <Badge
+                            className={`py-0.5 px-2.5 rounded-full text-[11px] font-bold ${
+                              isConfirmed
+                                ? "bg-emerald-600 hover:bg-emerald-600 text-white"
+                                : isRejected
+                                ? "bg-rose-600 hover:bg-rose-600 text-white"
+                                : "bg-amber-600 hover:bg-amber-600 text-white"
+                            }`}
+                          >
+                            {orderItem.orderStatus}
+                          </Badge>
+                        </TableCell>
+
+                        <TableCell className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                          ${orderItem.totalAmount}
+                        </TableCell>
+
+                        <TableCell className="text-right">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={(e) => {
+                              e.currentTarget.blur();
+                              handleFetchOrderDetails(orderItem._id);
+                            }}
+                            className="h-8 text-xs font-semibold rounded-xl border-zinc-200 dark:border-zinc-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-emerald-600"
+                          >
+                            <Eye className="w-3.5 h-3.5 mr-1" />
+                            <span>Details</span>
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-8 text-xs text-zinc-400">
+                      No past orders found.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
           <ShoppingOrderDetailsView orderDetails={orderDetails} />
         </Dialog>
       </CardContent>

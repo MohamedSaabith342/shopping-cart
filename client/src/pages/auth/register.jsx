@@ -1,15 +1,10 @@
-
 import CommonForm from "@/components/common/form";
 import { registerFormControls } from "@/config";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
 import { registerUser } from "../../store/auth-slice/index";
-
-import { toast } from "sonner"
-
-
+import { toast } from "sonner";
 
 const initialState = {
   userName: "",
@@ -30,38 +25,39 @@ function AuthRegister() {
         navigate("/auth/login");
       } else {
         toast.error(data?.payload?.message || "Registration failed");
-        console.log("Registration failed:", data);
       }
     });
   }
 
-  
-
-  console.log(formData);
-
   return (
-    <div className="mx-auto w-full max-w-md space-y-6">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          Create new account
+    <div className="space-y-6">
+      <div className="text-center sm:text-left space-y-2">
+        <span className="text-xs font-bold uppercase tracking-widest text-emerald-700 dark:text-emerald-400">
+          Get Started
+        </span>
+        <h1 className="text-3xl font-black tracking-tight text-zinc-900 dark:text-zinc-100 font-heading">
+          Create Your Account
         </h1>
-        <p className="mt-2">
-          Already have an account
+        <p className="text-xs text-zinc-500">
+          Already have an account?{" "}
           <Link
-            className="font-medium ml-2 text-primary hover:underline"
+            className="font-bold text-emerald-700 dark:text-emerald-400 hover:underline ml-1"
             to="/auth/login"
           >
-            Login
+            Sign In Here
           </Link>
         </p>
       </div>
-      <CommonForm
-        formControls={registerFormControls}
-        buttonText={"Sign Up"}
-        formData={formData}
-        setFormData={setFormData}
-        onSubmit={onSubmit}
-      />
+
+      <div className="bg-white dark:bg-zinc-900 p-6 rounded-3xl border border-zinc-200/80 dark:border-zinc-800 shadow-xl">
+        <CommonForm
+          formControls={registerFormControls}
+          buttonText={"Create Account"}
+          formData={formData}
+          setFormData={setFormData}
+          onSubmit={onSubmit}
+        />
+      </div>
     </div>
   );
 }

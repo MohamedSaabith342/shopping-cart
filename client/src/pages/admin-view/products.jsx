@@ -1,4 +1,3 @@
-
 import ProductImageUpload from "@/components/admin-view/image-upload";
 import AdminProductTile from "@/components/admin-view/product-tile";
 import CommonForm from "@/components/common/form";
@@ -8,8 +7,9 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
+  SheetDescription,
 } from "@/components/ui/sheet";
-import { toast } from "sonner"; 
+import { toast } from "sonner";
 import { addProductFormElements } from "@/config";
 import {
   addNewProduct,
@@ -19,6 +19,7 @@ import {
 } from "@/store/admin/products-slice";
 import { Fragment, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { PlusCircle, ShoppingBag } from "lucide-react";
 
 const initialFormData = {
   image: null,
@@ -28,8 +29,7 @@ const initialFormData = {
   brand: "",
   price: "",
   salePrice: "",
-  totalStock: ""
- 
+  totalStock: "",
 };
 
 function AdminProducts() {
@@ -43,7 +43,6 @@ function AdminProducts() {
 
   const { productList } = useSelector((state) => state.adminProducts);
   const dispatch = useDispatch();
-  
 
   function onSubmit(event) {
     event.preventDefault();
@@ -55,13 +54,12 @@ function AdminProducts() {
             formData,
           })
         ).then((data) => {
-          console.log(data, "edit");
-
           if (data?.payload?.success) {
             dispatch(fetchAllProducts());
             setFormData(initialFormData);
             setOpenCreateProductsDialog(false);
             setCurrentEditedId(null);
+            toast.success("Product updated successfully");
           }
         })
       : dispatch(
@@ -75,9 +73,7 @@ function AdminProducts() {
             setOpenCreateProductsDialog(false);
             setImageFile(null);
             setFormData(initialFormData);
-            toast(
-              "Product add successfully"
-            );
+            toast.success("Product added successfully");
           }
         });
   }
@@ -86,6 +82,7 @@ function AdminProducts() {
     dispatch(deleteProduct(getCurrentProductId)).then((data) => {
       if (data?.payload?.success) {
         dispatch(fetchAllProducts());
+        toast.success("Product deleted successfully");
       }
     });
   }
@@ -100,18 +97,32 @@ function AdminProducts() {
     dispatch(fetchAllProducts());
   }, [dispatch]);
 
-  
-
   return (
     <Fragment>
-      <div className="mb-5 w-full flex justify-end">
-        <Button onClick={() => setOpenCreateProductsDialog(true)}>
-          Add New Product
-        </Button>
-      </div>
-      <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
-        {productList && productList.length > 0
-          ? productList.map((productItem) => (
+      <div className="space-y-6">
+        {/* Header Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <span className="text-xs font-bold uppercase tracking-widest text-emerald-700 dark:text-emerald-400">
+              Inventory Control
+            </span>
+            <h1 className="text-3xl font-black tracking-tight text-zinc-900 dark:text-zinc-100 font-heading mt-1">
+              Products Management ({productList?.length || 0})
+            </h1>
+          </div>
+          <Button
+            onClick={() => setOpenCreateProductsDialog(true)}
+            className="py-6 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold shadow-md shadow-emerald-950/20 flex items-center gap-2 text-sm"
+          >
+            <PlusCircle className="w-4 h-4" />
+            <span>Add New Product</span>
+          </Button>
+        </div>
+
+        {/* Product Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {productList && productList.length > 0 ? (
+            productList.map((productItem) => (
               <AdminProductTile
                 key={productItem._id}
                 setFormData={setFormData}
@@ -121,8 +132,15 @@ function AdminProducts() {
                 handleDelete={handleDelete}
               />
             ))
-          : null}
+          ) : (
+            <div className="col-span-full py-16 text-center bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200/80 dark:border-zinc-800 text-xs text-zinc-400">
+              No products found in database. Click "Add New Product" to populate your catalog.
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Add / Edit Product Slide Drawer */}
       <Sheet
         open={openCreateProductsDialog}
         onOpenChange={() => {
@@ -131,26 +149,32 @@ function AdminProducts() {
           setFormData(initialFormData);
         }}
       >
-        <SheetContent side="right" className="w-full sm:max-w-md lg:max-w-lg overflow-y-auto px-6">
-          <SheetHeader>
-            <SheetTitle>
-              {currentEditedId !== null ? "Edit Product" : "Add New Product"}
+        <SheetContent side="right" className="w-full sm:max-w-md lg:max-w-lg overflow-y-auto px-6 py-6 bg-white dark:bg-zinc-950 border-l border-zinc-200 dark:border-zinc-800">
+          <SheetHeader className="pb-4 border-b border-zinc-200/80 dark:border-zinc-800 text-left">
+            <SheetTitle className="text-xl font-bold font-heading flex items-center gap-2">
+              <ShoppingBag className="w-5 h-5 text-emerald-600" />
+              {currentEditedId !== null ? "Edit Product Details" : "Add New Product"}
             </SheetTitle>
+            <SheetDescription className="text-xs text-zinc-500">
+              Fill in product specifications, pricing, stock count, and upload media.
+            </SheetDescription>
           </SheetHeader>
-          <ProductImageUpload
-            imageFile={imageFile}
-            setImageFile={setImageFile}
-            setUploadedImageUrl={setUploadedImageUrl}
-            setImageLoadingState={setImageLoadingState}
-            imageLoadingState={imageLoadingState}
-            isEditMode={currentEditedId !== null}
-          />
-          <div className="py-6">
+
+          <div className="py-6 space-y-6">
+            <ProductImageUpload
+              imageFile={imageFile}
+              setImageFile={setImageFile}
+              setUploadedImageUrl={setUploadedImageUrl}
+              setImageLoadingState={setImageLoadingState}
+              imageLoadingState={imageLoadingState}
+              isEditMode={currentEditedId !== null}
+            />
+
             <CommonForm
               onSubmit={onSubmit}
               formData={formData}
               setFormData={setFormData}
-              buttonText={currentEditedId !== null ? "Edit" : "Add"}
+              buttonText={currentEditedId !== null ? "Save Changes" : "Create Product"}
               formControls={addProductFormElements}
               isBtnDisabled={!isFormValid()}
             />
@@ -162,5 +186,3 @@ function AdminProducts() {
 }
 
 export default AdminProducts;
-
-

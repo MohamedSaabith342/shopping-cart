@@ -1,9 +1,8 @@
 import ProductFilter from "@/components/shopping-view/filter";
-import { useEffect,useState} from "react";
-import { useDispatch } from "react-redux";
-import { useSelector } from "react-redux";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { fetchAllFilteredProducts } from "@/store/shop/products-slice";
-import { ArrowUpDownIcon } from "lucide-react";
+import { ArrowUpDown, Grid, Sparkles } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,14 +13,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { sortOptions } from "@/config";
 import ShoppingProductTile from "@/components/shopping-view/product-tile";
-import { data, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { fetchProductDetails } from "@/store/shop/products-slice";
 import ProductDetailsDialog from "@/components/shopping-view/product-details";
-import { addToCart } from "@/store/shop/cart-slice";
-import { fetchCartItems } from "@/store/shop/cart-slice";
-import {toast} from "sonner";
-import { useLocation } from "react-router-dom";
-
+import { addToCart, fetchCartItems } from "@/store/shop/cart-slice";
+import { toast } from "sonner";
 
 function createSearchParamsHelper(filterParams) {
   const queryParams = [];
@@ -29,49 +25,32 @@ function createSearchParamsHelper(filterParams) {
   for (const [key, value] of Object.entries(filterParams)) {
     if (Array.isArray(value) && value.length > 0) {
       const paramValue = value.join(",");
-
       queryParams.push(`${key}=${encodeURIComponent(paramValue)}`);
     }
   }
 
-  console.log(queryParams, "queryParams");
-
   return queryParams.join("&");
 }
 
-
 function ShoppingListing() {
-
-  console.log("this is shopping listing page");
-
-
   const dispatch = useDispatch();
-  const {user} = useSelector((state) => state.auth);
-  const {cartItems} = useSelector((state) => state.shopCart);
-  const {productList,productDetails} = useSelector((state) => state.shopProducts);
+  const { user } = useSelector((state) => state.auth);
+  const { cartItems } = useSelector((state) => state.shopCart);
+  const { productList, productDetails } = useSelector((state) => state.shopProducts);
   const [filters, setFilters] = useState({});
-  const [sort,setSort] = useState(null);
+  const [sort, setSort] = useState("price-lowtohigh");
   const [searchParams, setSearchParams] = useSearchParams();
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
-  
-  
-  console.log("product details all",productList);
-
 
   function handleGetProductDetails(getCurrentProductId) {
-    console.log("getCurrentProductId:", getCurrentProductId);
     dispatch(fetchProductDetails(getCurrentProductId));
   }
-  console.log("productDetails:", productDetails);
 
-  
-  
-  function handleSort(value) {  
-    console.log("Selected sort option:", value);
+  function handleSort(value) {
     setSort(value);
   }
 
-   function handleFilter(getSectionId, getCurrentOption) {
+  function handleFilter(getSectionId, getCurrentOption) {
     let cpyFilters = { ...filters };
     const indexOfCurrentSection = Object.keys(cpyFilters).indexOf(getSectionId);
 
@@ -94,7 +73,6 @@ function ShoppingListing() {
   }
 
   function handleAddtoCart(getCurrentProductId, getTotalStock) {
-    console.log(cartItems);
     let getCartItems = cartItems.items || [];
 
     if (getCartItems.length) {
@@ -104,8 +82,7 @@ function ShoppingListing() {
       if (indexOfCurrentItem > -1) {
         const getQuantity = getCartItems[indexOfCurrentItem].quantity;
         if (getQuantity + 1 > getTotalStock) {
-          toast(`Only ${getQuantity} quantity can be added for this item`);
-
+          toast.warning(`Only ${getQuantity} quantity can be added for this item`);
           return;
         }
       }
@@ -120,32 +97,23 @@ function ShoppingListing() {
     ).then((data) => {
       if (data?.payload?.success) {
         dispatch(fetchCartItems(user?.id));
-        toast(
-          "Product is added to cart"
-        );
+        toast.success("Product added to cart!");
       }
     });
   }
 
-  
-
   useEffect(() => {
     setSort("price-lowtohigh");
-    console.log("filters from sessionStorage:", JSON.parse(sessionStorage.getItem("filters")));
     setFilters(JSON.parse(sessionStorage.getItem("filters")) || {});
   }, [searchParams]);
 
-    
-
-   
-
-    useEffect(() => {
-    if (filters !== null && sort !== null)
+  useEffect(() => {
+    if (filters !== null && sort !== null) {
       dispatch(
         fetchAllFilteredProducts({ filterParams: filters, sortParams: sort })
       );
+    }
   }, [dispatch, sort, filters]);
-
 
   useEffect(() => {
     if (filters && Object.keys(filters).length > 0) {
@@ -160,64 +128,93 @@ function ShoppingListing() {
     }
   }, [productDetails]);
 
-  console.log("productList:", productList);
-  console.log("filters:", filters);
-  
   return (
-    <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-6 p-4 md:p-6">
-      <ProductFilter filters={filters} handleFilter={handleFilter} />
-      <div className="bg-background w-full rounded-lg shadow-sm">
-        <div className="p-4 border-b flex items-center justify-between">
-          <h2 className="text-lg font-extrabold">All Products</h2>
-          <div className="flex items-center gap-3">
-            <span className="text-muted-foreground">
-              ${productList?.length || 0} Products
-            </span>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex items-center gap-1"
-                >
-                  <ArrowUpDownIcon className="h-4 w-4" />
-                  <span>Sort by</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-[200px]">
-                <DropdownMenuRadioGroup value={sort} onValueChange={handleSort}>
-                  {sortOptions.map((sortItem) => (
-                    <DropdownMenuRadioItem
-                      value={sortItem.id}
-                      key={sortItem.id}
-                    >
-                      {sortItem.label}
-                    </DropdownMenuRadioItem>
-                  ))}
-                </DropdownMenuRadioGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
+    <div className="bg-background min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+        {/* Listing Title Header */}
+        <div className="mb-8">
+          <span className="text-xs font-bold uppercase tracking-widest text-emerald-700 dark:text-emerald-400">
+            Catalog Browse
+          </span>
+          <h1 className="text-3xl font-black tracking-tight text-zinc-900 dark:text-zinc-100 font-heading mt-1">
+            All Products
+          </h1>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-8 items-start">
+          {/* Filter Sidebar */}
+          <ProductFilter filters={filters} handleFilter={handleFilter} />
+
+          {/* Main Grid & Toolbar */}
+          <div className="space-y-6">
+            {/* Toolbar Header */}
+            <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 shadow-sm flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Grid className="w-4 h-4 text-emerald-600" />
+                <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                  Showing {productList?.length || 0} Products
+                </span>
+              </div>
+
+              {/* Sort Menu */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-2 rounded-xl text-xs font-semibold border-zinc-200 dark:border-zinc-800"
+                  >
+                    <ArrowUpDown className="h-3.5 w-3.5 text-emerald-600" />
+                    <span>Sort Catalog</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48 rounded-xl">
+                  <DropdownMenuRadioGroup value={sort} onValueChange={handleSort}>
+                    {sortOptions.map((sortItem) => (
+                      <DropdownMenuRadioItem
+                        value={sortItem.id}
+                        key={sortItem.id}
+                        className="text-xs font-medium cursor-pointer rounded-lg"
+                      >
+                        {sortItem.label}
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            {/* Products Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {productList && productList.length > 0 ? (
+                productList.map((productItem) => (
+                  <ShoppingProductTile
+                    key={productItem._id}
+                    handleGetProductDetails={handleGetProductDetails}
+                    product={productItem}
+                    handleAddtoCart={handleAddtoCart}
+                  />
+                ))
+              ) : (
+                <div className="col-span-full bg-white dark:bg-zinc-900 p-12 text-center rounded-2xl border border-zinc-200/80 dark:border-zinc-800">
+                  <Sparkles className="w-8 h-8 text-zinc-300 mx-auto mb-3" />
+                  <h3 className="text-base font-bold text-zinc-800 dark:text-zinc-200">No products found</h3>
+                  <p className="text-xs text-zinc-400 mt-1">Try clearing your filters or changing your selection.</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
-          {productList && productList.length > 0
-            ? productList.map((productItem) => (
-                <ShoppingProductTile
-                  handleGetProductDetails={handleGetProductDetails}
-                  product={productItem}
-                  handleAddtoCart={handleAddtoCart}
-                />
-              ))
-            : null}
-        </div>
+
+        {/* Product Details Dialog */}
+        <ProductDetailsDialog
+          open={openDetailsDialog}
+          setOpen={setOpenDetailsDialog}
+          productDetails={productDetails}
+        />
       </div>
-      <ProductDetailsDialog
-        open={openDetailsDialog}
-        setOpen={setOpenDetailsDialog}
-        productDetails={productDetails}
-      />
     </div>
-  )
+  );
 }
 
 export default ShoppingListing;

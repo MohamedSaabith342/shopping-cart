@@ -1,27 +1,32 @@
-import { StarIcon } from "lucide-react";
-import { Button } from "../ui/button";
+import { Star } from "lucide-react";
 
-function StarRatingComponent({ rating, handleRatingChange }) {
-  console.log(rating, "rating");
-
-  return [1, 2, 3, 4, 5].map((star) => (
-    <Button
-      className={`p-2 rounded-full transition-colors ${
-        star <= rating
-          ? "text-yellow-500 hover:bg-black"
-          : "text-black hover:bg-primary hover:text-primary-foreground"
-      }`}
-      variant="outline"
-      size="icon"
-      onClick={handleRatingChange ? () => handleRatingChange(star) : null}
-    >
-      <StarIcon
-        className={`w-6 h-6 ${
-          star <= rating ? "fill-yellow-500" : "fill-black"
-        }`}
-      />
-    </Button>
-  ));
+function StarRatingComponent({ rating = 0, handleRatingChange }) {
+  return (
+    <div className="flex items-center gap-1">
+      {[1, 2, 3, 4, 5].map((star) => {
+        const isFilled = star <= Math.round(rating);
+        return (
+          <button
+            key={star}
+            type="button"
+            disabled={!handleRatingChange}
+            onClick={handleRatingChange ? () => handleRatingChange(star) : undefined}
+            className={`p-1 rounded-md transition-transform duration-150 ${
+              handleRatingChange ? "hover:scale-125 focus:outline-none cursor-pointer" : "cursor-default"
+            }`}
+          >
+            <Star
+              className={`w-4 h-4 transition-colors ${
+                isFilled
+                  ? "fill-amber-400 text-amber-400"
+                  : "fill-zinc-200 text-zinc-300 dark:fill-zinc-800 dark:text-zinc-700"
+              }`}
+            />
+          </button>
+        );
+      })}
+    </div>
+  );
 }
 
 export default StarRatingComponent;

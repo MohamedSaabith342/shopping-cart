@@ -9,7 +9,6 @@ const registerUser = async (req, res) => {
   const { userName, email, password } = req.body;
 
   try {
-    console.log("Registering user with data:", { userName, email });
     const checkUser = await User.findOne({ email });
     if (checkUser)
       return res.json({
@@ -71,6 +70,8 @@ const loginUser = async (req, res) => {
       { expiresIn: "60m" }
     );
 
+    console.log("Generated JWT token:", token);
+
     res.cookie("token", token, { httpOnly: true, secure: false }).json({
       success: true,
       message: "Logged in successfully",
@@ -107,6 +108,7 @@ const authMiddleware = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, "CLIENT_SECRET_KEY");
+    console.log("Decoded token:", decoded);
     req.user = decoded;
     next();
   } catch (error) {

@@ -1,5 +1,4 @@
-
-import { FileIcon, UploadCloudIcon, XIcon } from "lucide-react";
+import { FileIcon, UploadCloud, X } from "lucide-react";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { useEffect, useRef } from "react";
@@ -14,17 +13,11 @@ function ProductImageUpload({
   setUploadedImageUrl,
   setImageLoadingState,
   isEditMode,
-  
 }) {
   const inputRef = useRef(null);
 
-  console.log(isEditMode, "isEditMode");
-
   function handleImageFileChange(event) {
-    console.log(event.target.files, "event.target.files");
     const selectedFile = event.target.files?.[0];
-    console.log(selectedFile);
-
     if (selectedFile) setImageFile(selectedFile);
   }
 
@@ -49,14 +42,17 @@ function ProductImageUpload({
     setImageLoadingState(true);
     const data = new FormData();
     data.append("my_file", imageFile);
-    const response = await axios.post(
-      "http://localhost:5000/api/admin/products/upload-image",
-      data
-    );
-    console.log(response, "response");
-
-    if (response?.data?.success) {
-      setUploadedImageUrl(response.data.result.url);
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/admin/products/upload-image",
+        data
+      );
+      if (response?.data?.success) {
+        setUploadedImageUrl(response.data.result.url);
+        setImageLoadingState(false);
+      }
+    } catch (err) {
+      console.error(err);
       setImageLoadingState(false);
     }
   }
@@ -66,14 +62,18 @@ function ProductImageUpload({
   }, [imageFile]);
 
   return (
-    <div className="w-full  mt-4 max-w-md mx-auto" >
-      <Label className="text-lg font-semibold mb-2 block">Upload Image</Label>
+    <div className="w-full space-y-2">
+      <Label className="text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-300 block">
+        Product Image Upload
+      </Label>
       <div
         onDragOver={handleDragOver}
         onDrop={handleDrop}
-        className={`${
-          isEditMode ? "opacity-60" : ""
-        } border-2 border-dashed rounded-lg p-4`}
+        className={`border-2 border-dashed rounded-2xl p-6 transition-all duration-200 ${
+          isEditMode
+            ? "opacity-60 bg-zinc-100 border-zinc-300 dark:bg-zinc-900 dark:border-zinc-800"
+            : "border-zinc-300 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-900/50 hover:border-emerald-600"
+        }`}
       >
         <Input
           id="image-upload"
@@ -87,27 +87,34 @@ function ProductImageUpload({
           <Label
             htmlFor="image-upload"
             className={`${
-              isEditMode ? "cursor-not-allowed" : ""
-            } flex flex-col items-center justify-center h-32 cursor-pointer`}
+              isEditMode ? "cursor-not-allowed" : "cursor-pointer"
+            } flex flex-col items-center justify-center space-y-2 text-center py-4`}
           >
-            <UploadCloudIcon className="w-10 h-10 text-muted-foreground mb-2" />
-            <span>Drag & drop or click to upload image</span>
+            <div className="p-3 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600">
+              <UploadCloud className="w-6 h-6" />
+            </div>
+            <p className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
+              Click to upload or drag & drop image file
+            </p>
+            <p className="text-[11px] text-zinc-400">PNG, JPG, WEBP up to 5MB</p>
           </Label>
         ) : imageLoadingState ? (
-          <Skeleton className="h-10 bg-gray-100" />
+          <Skeleton className="h-12 w-full rounded-xl bg-zinc-200 dark:bg-zinc-800 animate-pulse" />
         ) : (
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <FileIcon className="w-8 text-primary mr-2 h-8" />
+          <div className="flex items-center justify-between p-2 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800">
+            <div className="flex items-center gap-3 min-w-0">
+              <FileIcon className="w-6 h-6 text-emerald-600 shrink-0" />
+              <p className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 truncate">
+                {imageFile.name}
+              </p>
             </div>
-            <p className="text-sm font-medium">{imageFile.name}</p>
             <Button
               variant="ghost"
               size="icon"
-              className="text-muted-foreground hover:text-foreground"
+              className="h-8 w-8 rounded-lg text-zinc-400 hover:text-rose-600 shrink-0"
               onClick={handleRemoveImage}
             >
-              <XIcon className="w-4 h-4" />
+              <X className="w-4 h-4" />
               <span className="sr-only">Remove File</span>
             </Button>
           </div>

@@ -1,9 +1,6 @@
-import { HousePlug, LogOut, Menu, ShoppingCart, UserCog } from "lucide-react";
-import {
-  Link,
-  useNavigate
-} from "react-router-dom";
-import { Sheet, SheetContent, SheetTrigger } from "../ui/sheet";
+import { Sparkles, LogOut, Menu, ShoppingBag, UserCog, Search, X } from "lucide-react";
+import { Link, useNavigate, useSearchParams, useLocation } from "react-router-dom";
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "../ui/sheet";
 import { Button } from "../ui/button";
 import { useDispatch, useSelector } from "react-redux";
 import { shoppingViewHeaderMenuItems } from "@/config";
@@ -18,29 +15,16 @@ import {
 import { Avatar, AvatarFallback } from "../ui/avatar";
 import { logoutUser } from "@/store/auth-slice";
 import UserCartWrapper from "./cart-wrapper";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { fetchCartItems } from "@/store/shop/cart-slice";
-import { useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
-import { Label } from "../ui/label";
 
-// import { useLocation } from "react-router-dom";
-
-
-
-
-
-
-
-
-function MenuItems() {
-
-  //  const [searchParams, setSearchParams] = useSearchParams();
-   const navigate = useNavigate();
-   const [searchParams, setSearchParams] = useSearchParams();
-  //  const location = useLocation();
+function MenuItems({ closeMobileMenu }) {
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
 
   function handleNavigate(getCurrentMenuItem) {
+    if (closeMobileMenu) closeMobileMenu();
     sessionStorage.removeItem("filters");
     const currentFilter =
       getCurrentMenuItem.id !== "home" &&
@@ -60,19 +44,27 @@ function MenuItems() {
       : navigate(getCurrentMenuItem.path);
   }
 
-   
-  
-    return (
-    <nav className="flex flex-col mb-3 lg:mb-0 lg:items-center gap-6 lg:flex-row">
-      {shoppingViewHeaderMenuItems.map((menuItem) => (
-        <Label
-          onClick={() => handleNavigate(menuItem)}
-          className="text-sm font-medium cursor-pointer"
-          key={menuItem.id}
-        >
-          {menuItem.label}
-        </Label>
-      ))}
+  return (
+    <nav className="flex flex-col lg:flex-row lg:items-center gap-1 lg:gap-2">
+      {shoppingViewHeaderMenuItems.map((menuItem) => {
+        const isActive =
+          location.pathname === menuItem.path &&
+          (menuItem.id === "products" || menuItem.id === "home" || menuItem.id === "search");
+
+        return (
+          <button
+            key={menuItem.id}
+            onClick={() => handleNavigate(menuItem)}
+            className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 text-left lg:text-center ${
+              isActive
+                ? "bg-emerald-950/10 text-emerald-700 dark:text-emerald-400 font-semibold"
+                : "text-zinc-600 hover:text-zinc-950 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-100 dark:hover:bg-zinc-800/60"
+            }`}
+          >
+            {menuItem.label}
+          </button>
+        );
+      })}
     </nav>
   );
 }
@@ -80,11 +72,9 @@ function MenuItems() {
 function HeaderRightContent() {
   const { user } = useSelector((state) => state.auth);
   const navigate = useNavigate();
-  const {cartItems} = useSelector((state) => state.shopCart);
+  const { cartItems } = useSelector((state) => state.shopCart);
   const dispatch = useDispatch();
   const [openCartSheet, setOpenCartSheet] = useState(false);
-  console.log("HeaderRightContent: user:", user);
-  
 
   function handleLogout() {
     dispatch(logoutUser());
@@ -92,59 +82,88 @@ function HeaderRightContent() {
   }
 
   useEffect(() => {
-    dispatch(fetchCartItems(user?.id));
-    console.log("fetchCartItems dispatched for userId:", user?._id);
-  },[dispatch]);
-   console.log("cartItems in header right:", cartItems);
+    if (user?.id) {
+      dispatch(fetchCartItems(user?.id));
+    }
+  }, [dispatch, user?.id]);
 
-  
+  const itemCount = cartItems?.items?.length || 0;
 
   return (
-    <div className="flex lg:items-center lg:flex-row flex-col gap-4">
-        <Sheet open={openCartSheet} onOpenChange={() => setOpenCartSheet(false)}>
-          <Button
-            onClick={() => setOpenCartSheet(true)}
-            variant="outline"
-            size="icon"
-            className="relative"
-          >
-            <ShoppingCart className="w-6 h-6" />
-            <span className="absolute top-[-5px] right-[2px] font-bold text-sm">
-              {cartItems?.items?.length || 0}
+    <div className="flex items-center gap-3">
+      {/* Quick Search Shortcut */}
+      <button
+        onClick={() => navigate("/shop/search")}
+        className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-xs text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:border-zinc-300 transition-all"
+        title="Search products"
+      >
+        <Search className="w-3.5 h-3.5 text-zinc-400" />
+        <span>Search...</span>
+      </button>
+
+      {/* Cart Sheet Drawer Trigger */}
+      <Sheet open={openCartSheet} onOpenChange={setOpenCartSheet}>
+        <Button
+          onClick={() => setOpenCartSheet(true)}
+          variant="ghost"
+          size="icon"
+          className="relative rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+        >
+          <ShoppingBag className="w-5 h-5 text-zinc-700 dark:text-zinc-300" />
+          {itemCount > 0 && (
+            <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-bold text-white shadow-sm ring-2 ring-white dark:ring-zinc-950 animate-pulse">
+              {itemCount}
             </span>
-            <span className="sr-only">User cart</span>
-          </Button>
-          <UserCartWrapper
-            setOpenCartSheet={setOpenCartSheet}
-            cartItems={
-              cartItems && cartItems.items && cartItems.items.length > 0
-                ? cartItems.items
-                : []
-            }
+          )}
+          <span className="sr-only">Shopping Cart</span>
+        </Button>
+        <UserCartWrapper
+          setOpenCartSheet={setOpenCartSheet}
+          cartItems={
+            cartItems && cartItems.items && cartItems.items.length > 0
+              ? cartItems.items
+              : []
+          }
         />
-        </Sheet>
+      </Sheet>
 
-        
-
+      {/* User Profile Dropdown */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Avatar className="bg-black">
-            <AvatarFallback className="bg-black text-white font-extrabold">
-              {user?.userName[0].toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
+          <button className="flex items-center gap-2 outline-none group">
+            <Avatar className="h-9 w-9 border-2 border-emerald-600/30 group-hover:border-emerald-600 transition-colors">
+              <AvatarFallback className="bg-zinc-900 text-white font-bold text-xs">
+                {user?.userName ? user.userName[0].toUpperCase() : "U"}
+              </AvatarFallback>
+            </Avatar>
+          </button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent side="right" className="w-56">
-          <DropdownMenuLabel>Logged in as {user?.userName}</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => navigate("/shop/account")}>
-            <UserCog className="mr-2 h-4 w-4" />
-            Account
+        <DropdownMenuContent align="end" className="w-56 p-2 rounded-xl shadow-xl border-zinc-200 dark:border-zinc-800">
+          <DropdownMenuLabel className="font-normal px-2 py-1.5">
+            <div className="flex flex-col space-y-1">
+              <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 leading-none">
+                {user?.userName}
+              </p>
+              <p className="text-xs text-zinc-500 leading-none truncate">
+                {user?.email}
+              </p>
+            </div>
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator className="my-1.5" />
+          <DropdownMenuItem
+            onClick={() => navigate("/shop/account")}
+            className="cursor-pointer rounded-lg px-2 py-2 text-xs font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800"
+          >
+            <UserCog className="mr-2 h-4 w-4 text-emerald-600" />
+            <span>My Account & Orders</span>
           </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={handleLogout}>
-            <LogOut className="mr-2 h-4 w-4" />
-            Logout
+          <DropdownMenuSeparator className="my-1.5" />
+          <DropdownMenuItem
+            onClick={handleLogout}
+            className="cursor-pointer rounded-lg px-2 py-2 text-xs font-medium text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30"
+          >
+            <LogOut className="mr-2 h-4 w-4 text-rose-600" />
+            <span>Sign Out</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -154,31 +173,54 @@ function HeaderRightContent() {
 
 function ShoppingHeader() {
   const { isAuthenticated } = useSelector((state) => state.auth);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background">
-      <div className="flex h-16 items-center justify-between px-4 md:px-6">
-        <Link to="/shop/home" className="flex items-center gap-2">
-          <HousePlug className="h-6 w-6" />
-          <span className="font-bold">Ecommerce</span>
+    <header className="sticky top-0 z-50 w-full border-b border-zinc-200/80 dark:border-zinc-800/80 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-md transition-all">
+      <div className="max-w-7xl mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
+        {/* Brand Logo */}
+        <Link to="/shop/home" className="flex items-center gap-2.5 group">
+          <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white shadow-md shadow-emerald-900/20 group-hover:scale-105 transition-transform duration-200">
+            <Sparkles className="w-5 h-5" />
+          </div>
+          <span className="text-xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100 font-heading">
+            SHOPVERSE<span className="text-emerald-600">.</span>
+          </span>
         </Link>
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="outline" size="icon" className="lg:hidden">
-              <Menu className="h-6 w-6" />
-              <span className="sr-only">Toggle header menu</span>
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-full max-w-xs">
-            <MenuItems />
-          </SheetContent>
-        </Sheet>
+
+        {/* Mobile Hamburger Button */}
+        <div className="flex items-center gap-2 lg:hidden">
+          {isAuthenticated && <HeaderRightContent />}
+          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="rounded-lg">
+                <Menu className="h-6 w-6 text-zinc-700" />
+                <span className="sr-only">Toggle navigation menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-80 p-6">
+              <SheetHeader className="mb-6 border-b pb-4 text-left">
+                <SheetTitle className="flex items-center gap-2 text-xl font-bold font-heading">
+                  <Sparkles className="w-5 h-5 text-emerald-600" />
+                  SHOPVERSE Navigation
+                </SheetTitle>
+              </SheetHeader>
+              <MenuItems closeMobileMenu={() => setMobileMenuOpen(false)} />
+            </SheetContent>
+          </Sheet>
+        </div>
+
+        {/* Desktop Navigation Links */}
         <div className="hidden lg:block">
           <MenuItems />
         </div>
-        {isAuthenticated ? <div className="hidden lg:block">
-          <HeaderRightContent /> </div> : null}
-        
+
+        {/* Desktop User Right Header Content */}
+        {isAuthenticated ? (
+          <div className="hidden lg:block">
+            <HeaderRightContent />
+          </div>
+        ) : null}
       </div>
     </header>
   );

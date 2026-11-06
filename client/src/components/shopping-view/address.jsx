@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
 import CommonForm from "../common/form";
-import { Card, CardContent, CardHeader, CardTitle} from "../ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { addressFormControls } from "@/config";
 import { useDispatch, useSelector } from "react-redux";
-
 import { toast } from "sonner";
 import {
   addNewAddress,
@@ -12,10 +11,7 @@ import {
   fetchAllAddresses,
 } from "@/store/shop/address-slice";
 import AddressCard from "./address-card";
-
-
-
-
+import { PlusCircle, Edit3 } from "lucide-react";
 
 const initialAddressFormData = {
   address: "",
@@ -29,8 +25,8 @@ function Address({ setCurrentSelectedAddress, selectedId }) {
   const [formData, setFormData] = useState(initialAddressFormData);
   const [currentEditedId, setCurrentEditedId] = useState(null);
   const dispatch = useDispatch();
-  const {user} = useSelector((state) => state.auth);
-   const { addressList } = useSelector((state) => state.shopAddress);
+  const { user } = useSelector((state) => state.auth);
+  const { addressList } = useSelector((state) => state.shopAddress);
 
   function isFormValid() {
     return Object.keys(formData)
@@ -43,14 +39,10 @@ function Address({ setCurrentSelectedAddress, selectedId }) {
 
     if (addressList.length >= 3 && currentEditedId === null) {
       setFormData(initialAddressFormData);
-      toast.error(
-        "You can add max 3 addresses"
-       
-      );
-
+      toast.warning("Maximum limit of 3 addresses reached");
       return;
     }
-    
+
     currentEditedId !== null
       ? dispatch(
           editaAddress({
@@ -63,9 +55,7 @@ function Address({ setCurrentSelectedAddress, selectedId }) {
             dispatch(fetchAllAddresses(user?.id));
             setCurrentEditedId(null);
             setFormData(initialAddressFormData);
-            toast(
-              "Address updated successfully"
-            );
+            toast.success("Address updated successfully");
           }
         })
       : dispatch(
@@ -77,81 +67,97 @@ function Address({ setCurrentSelectedAddress, selectedId }) {
           if (data?.payload?.success) {
             dispatch(fetchAllAddresses(user?.id));
             setFormData(initialAddressFormData);
-            toast(
-              "Address added successfully"
-            );
+            toast.success("Address added successfully");
           }
         });
+  }
 
-   }
-
-   function handleDeleteAddress(getCurrentAddress) {
-    console.log("current address",getCurrentAddress);
+  function handleDeleteAddress(getCurrentAddress) {
     dispatch(
       deleteAddress({ userId: user?.id, addressId: getCurrentAddress._id })
     ).then((data) => {
       if (data?.payload?.success) {
         dispatch(fetchAllAddresses(user?.id));
-        toast("Address deleted successfully");
+        toast.success("Address deleted successfully");
       }
     });
   }
 
-  function handleEditAddress(getCuurentAddress) {
-    setCurrentEditedId(getCuurentAddress?._id);
+  function handleEditAddress(getCurrentAddress) {
+    setCurrentEditedId(getCurrentAddress?._id);
     setFormData({
-      ...formData,
-      address: getCuurentAddress?.address,
-      city: getCuurentAddress?.city,
-      phone: getCuurentAddress?.phone,
-      pincode: getCuurentAddress?.pincode,
-      notes: getCuurentAddress?.notes,
+      address: getCurrentAddress?.address || "",
+      city: getCurrentAddress?.city || "",
+      phone: getCurrentAddress?.phone || "",
+      pincode: getCurrentAddress?.pincode || "",
+      notes: getCurrentAddress?.notes || "",
     });
   }
 
-   useEffect(() => {
-    dispatch(fetchAllAddresses(user?.id));
-  }, [dispatch]);
-
-  console.log("adrees rendered with address list:", addressList);
+  useEffect(() => {
+    if (user?.id) {
+      dispatch(fetchAllAddresses(user?.id));
+    }
+  }, [dispatch, user?.id]);
 
   return (
-    <Card>
-      <div className="mb-5 p-3 grid grid-cols-1 sm:grid-cols-2  gap-2">
-        {addressList && addressList.length > 0
-          ? addressList.map((singleAddressItem) => (
+    <div className="space-y-6">
+      {/* Existing Addresses Grid */}
+      <div>
+        <h3 className="text-sm font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 mb-3">
+          Saved Addresses ({addressList?.length || 0} / 3)
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {addressList && addressList.length > 0 ? (
+            addressList.map((singleAddressItem) => (
               <AddressCard
-                
+                key={singleAddressItem._id}
                 addressInfo={singleAddressItem}
                 handleDeleteAddress={handleDeleteAddress}
-                setFormData = {setFormData}
-                setCurrentEditedId = {setCurrentEditedId}
+                setFormData={setFormData}
+                setCurrentEditedId={setCurrentEditedId}
                 handleEditAddress={handleEditAddress}
                 setCurrentSelectedAddress={setCurrentSelectedAddress}
                 selectedId={selectedId}
-               
               />
             ))
-          : null}
+          ) : (
+            <div className="col-span-full p-8 text-center bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 text-xs text-zinc-400">
+              No saved addresses found. Add a shipping address below.
+            </div>
+          )}
+        </div>
       </div>
-      <CardHeader>
-        <CardTitle>
-          {currentEditedId !==null ? "Edit Address": "Add New Address"}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <CommonForm
-          formControls={addressFormControls}
-          formData={formData}
-          setFormData={setFormData}
-          buttonText={currentEditedId !==null ? "Edit": "Add"}
-          onSubmit={handleManageAddress}
-          isBtnDisabled={!isFormValid()}
-          
-        />
-      </CardContent>
-  
-    </Card>
+
+      {/* Form Container */}
+      <Card className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm overflow-hidden">
+        <CardHeader className="border-b border-zinc-200/80 dark:border-zinc-800 p-5">
+          <CardTitle className="text-base font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2 font-heading">
+            {currentEditedId !== null ? (
+              <>
+                <Edit3 className="w-4 h-4 text-emerald-600" />
+                <span>Edit Address</span>
+              </>
+            ) : (
+              <>
+                <PlusCircle className="w-4 h-4 text-emerald-600" />
+                <span>Add New Address</span>
+              </>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-5">
+          <CommonForm
+            formControls={addressFormControls}
+            formData={formData}
+            setFormData={setFormData}
+            buttonText={currentEditedId !== null ? "Update Address" : "Save Address"}
+            onSubmit={handleManageAddress}
+            isBtnDisabled={!isFormValid()}
+          />
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 
