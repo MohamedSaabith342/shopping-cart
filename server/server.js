@@ -1,5 +1,5 @@
 const express = require('express');
-const mongoose = require('mongoose');
+const connectDB = require("./helpers/db");
 const cookiesParser = require('cookie-parser');
 const cors = require('cors');
 const authRouter = require("./routes/auth/auth-routes");
@@ -14,9 +14,7 @@ const shopReviewRouter = require("./routes/shop/review-routes");
 const commonFeatureRouter = require("./routes/common/feature-routes");
 
 
-// create database connection -> we can also craete a separate file for this and import it here
-mongoose.connect("mongodb://mohamedsaabith1010_db_user:saabith123@ac-rohld23-shard-00-00.62mtyzw.mongodb.net:27017,ac-rohld23-shard-00-01.62mtyzw.mongodb.net:27017,ac-rohld23-shard-00-02.62mtyzw.mongodb.net:27017/?ssl=true&replicaSet=atlas-zq6pcn-shard-0&authSource=admin&appName=Cluster1").
-then(() => console.log("Connected to MongoDB")).catch((err) => console.log(err));
+
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -51,6 +49,12 @@ app.use("/api/shop/search", shopSearchRouter);
 app.use("/api/shop/review", shopReviewRouter);
 app.use("/api/common/feature", commonFeatureRouter);
 
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-}); 
+const startServer = async () => {
+  await connectDB();
+
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+};
+
+startServer();
