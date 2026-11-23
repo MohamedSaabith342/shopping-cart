@@ -38,7 +38,45 @@ function App() {
     dispatch(checkAuth());
   }, [dispatch]);
 
-  if (isLoading) return <h1>Loading...</h1>;
+  // if (isLoading) return <h1>Loading...</h1>;
+
+if (isLoading) {
+  return (
+    <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50">
+      <div className="flex flex-col items-center gap-5">
+        {/* Animated Spinner */}
+        <div className="relative flex h-16 w-16 items-center justify-center">
+          <div className="absolute h-16 w-16 animate-spin rounded-full border-4 border-blue-100 border-t-blue-600" />
+          <div className="h-8 w-8 rounded-full bg-blue-100" />
+        </div>
+
+        {/* Loading Text */}
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-slate-800">
+            Please wait...
+          </h2>
+          <p className="mt-2 text-sm text-slate-500">
+            Preparing your shopping experience
+          </p>
+        </div>
+
+        {/* Animated Dots */}
+        <div className="flex gap-2">
+          {[0, 1, 2].map((index) => (
+            <span
+              key={index}
+              className="h-2 w-2 animate-bounce rounded-full bg-blue-500"
+              style={{
+                animationDelay: `${index * 150}ms`,
+              }}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
   
   return (
     <div className="flex flex-col overflow-hidden bg-white">
