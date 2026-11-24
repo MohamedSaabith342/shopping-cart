@@ -120,7 +120,7 @@ function ShoppingFooter() {
 
       {/* Bottom Legal */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 border-t border-zinc-200/80 dark:border-zinc-900 flex flex-col sm:flex-row items-center justify-between text-xs text-zinc-400 dark:text-zinc-500 gap-4">
-        <p>© {new Date().getFullYear()} SHOPVERSE Luxe Commerce. All rights reserved.</p>
+        <p>© {new Date().getFullYear()} SHOPVERSE Luxe Commerce.Powered by GitHub Actions & Argo CD.</p>
         <div className="flex items-center gap-6">
           <span className="hover:text-zinc-600 dark:hover:text-zinc-400 cursor-pointer">Privacy</span>
           <span className="hover:text-zinc-600 dark:hover:text-zinc-400 cursor-pointer">Terms</span>
