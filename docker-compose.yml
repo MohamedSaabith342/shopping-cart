@@ -1,0 +1,38 @@
+services:
+  frontend:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    image: react-frontend:v1
+    container_name: frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    image: node-backend:v1
+    container_name: backend
+    env_file:
+      - ./server/.env
+    environment:
+      NODE_ENV: production
+    restart: unless-stopped
+    depends_on:
+      - mongodb
+
+  mongodb:
+    image: mongo:7
+    container_name: mongodb
+    env_file:
+      - ./.env
+    volumes:
+      - mongodb_data:/data/db
+    restart: unless-stopped
+
+volumes:
+  mongodb_data:

@@ -1,0 +1,95 @@
+name: ShopVerse CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'client/**'
+      - 'server/**'
+      - '.github/workflows/ci.yaml'
+
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: shopverse-ci-main
+  cancel-in-progress: true
+
+jobs:
+
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./client
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/shopverse-frontend:${{ github.sha }}
+
+      - name: Build and push backend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./server
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/shopverse-backend:${{ github.sha }}
+
+  update-manifests:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update Kubernetes image tags
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+          DOCKER_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+        run: |
+          sed -i "s|image: .*\/shopverse-frontend:.*|image: ${DOCKER_USERNAME}/shopverse-frontend:${IMAGE_TAG}|" k8s/frontend/deployment.yaml
+
+          sed -i "s|image: .*\/shopverse-backend:.*|image: ${DOCKER_USERNAME}/shopverse-backend:${IMAGE_TAG}|" k8s/backend/deployment.yaml
+
+          cat k8s/frontend/deployment.yaml
+          cat k8s/backend/deployment.yaml
+
+      - name: Commit and push updated manifests
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add k8s/frontend/deployment.yaml
+          git add k8s/backend/deployment.yaml
+
+          if git diff --cached --quiet; then
+            echo "No manifest changes"
+          else
+            git commit -m "Update ShopVerse images to ${IMAGE_TAG}"
+            git push origin main
+          fi

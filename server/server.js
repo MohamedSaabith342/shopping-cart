@@ -19,19 +19,19 @@ const commonFeatureRouter = require("./routes/common/feature-routes");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(
-    cors({
-        origin: "http://localhost:5173",
-        methods: ["GET", "POST", "PUT", "DELETE"],
-        allowedHeaders: [
-            "Content-Type", 
-            "Authorization",
-            "cache-control",
-            "Expires",
-            "Pragma"],
-        credentials: true,
-    })
-);
+// app.use(
+//     cors({
+//         origin: "http://localhost:5173",
+//         methods: ["GET", "POST", "PUT", "DELETE"],
+//         allowedHeaders: [
+//             "Content-Type", 
+//             "Authorization",
+//             "cache-control",
+//             "Expires",
+//             "Pragma"],
+//         credentials: true,
+//     })
+// );
 
 console.log("authRouter:", authRouter);
 
