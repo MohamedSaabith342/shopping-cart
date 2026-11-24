@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: mohamedsaabith342/shopverse-frontend:v1
+          image: mohamedsaabith342/shopverse-frontend:38d8b7e67836db016a7c9df6e509a0ca6204723d
           imagePullPolicy: IfNotPresent
 
           ports:

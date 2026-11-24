@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: mohamedsaabith342/shopverse-backend:v1
+          image: mohamedsaabith342/shopverse-backend:38d8b7e67836db016a7c9df6e509a0ca6204723d
 
           ports:
             - containerPort: 5000
