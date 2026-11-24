@@ -1,3 +1,10 @@
 node_modules
 .env
 dist/
+
+node_modules
+.env
+.env.*
+.git
+eslint-report.txt
+eslint-report.json

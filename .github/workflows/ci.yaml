@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: shopverse-ci-main
@@ -20,7 +20,64 @@ concurrency:
 
 jobs:
 
+  # ==========================================
+  # JOB 1: Code Quality and Dependency Security
+  # ==========================================
+
+  code-quality:
+    name: Code Quality and Dependency Security
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # Frontend checks
+
+      - name: Install frontend dependencies
+        working-directory: ./client
+        run: npm ci
+
+      - name: ESLint frontend
+        working-directory: ./client
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Frontend dependency security scan
+        working-directory: ./client
+        run: npm audit --audit-level=high
+        continue-on-error: true
+
+      # Backend checks
+
+      - name: Install backend dependencies
+        working-directory: ./server
+        run: npm ci
+
+      - name: ESLint backend
+        working-directory: ./server
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Backend dependency security scan
+        working-directory: ./server
+        run: npm audit --audit-level=high
+        continue-on-error: true
+
+
+  # ==========================================
+  # JOB 2: Build, Scan and Push Docker Images
+  # ==========================================
+
   build-and-push:
+    name: Build, Scan and Push Docker Images
+    needs: code-quality
     runs-on: ubuntu-latest
 
     steps:
@@ -37,25 +94,76 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push frontend
+      # Build frontend image
+
+      - name: Build frontend image
         uses: docker/build-push-action@v6
         with:
           context: ./client
-          push: true
+          load: true
+          push: false
+          pull: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/shopverse-frontend:${{ github.sha }}
 
-      - name: Build and push backend
+      # Build backend image
+
+      - name: Build backend image
         uses: docker/build-push-action@v6
         with:
           context: ./server
-          push: true
+          load: true
+          push: false
+          pull: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/shopverse-backend:${{ github.sha }}
 
+      # Trivy frontend image scanning
+
+      - name: Trivy frontend image scan
+        uses: aquasecurity/trivy-action@0.30.0
+        with:
+          scan-type: 'image'
+          image-ref: '${{ secrets.DOCKERHUB_USERNAME }}/shopverse-frontend:${{ github.sha }}'
+          format: 'table'
+          scanners: 'vuln,secret'
+          severity: 'UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL'
+          exit-code: '0'
+
+      # Trivy backend image scanning
+
+      - name: Trivy backend image scan
+        uses: aquasecurity/trivy-action@0.30.0
+        with:
+          scan-type: 'image'
+          image-ref: '${{ secrets.DOCKERHUB_USERNAME }}/shopverse-backend:${{ github.sha }}'
+          format: 'table'
+          scanners: 'vuln,secret'
+          severity: 'UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL'
+          exit-code: '0'
+
+      # Push scanned images to Docker Hub
+
+      - name: Push frontend image
+        run: |
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/shopverse-frontend:${{ github.sha }}
+
+      - name: Push backend image
+        run: |
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/shopverse-backend:${{ github.sha }}
+
+
+  # ==========================================
+  # JOB 3: Update Kubernetes Manifests
+  # ==========================================
+
   update-manifests:
+    name: Update Kubernetes Manifests
     needs: build-and-push
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
 
     steps:
 
@@ -74,7 +182,10 @@ jobs:
 
           sed -i "s|image: .*\/shopverse-backend:.*|image: ${DOCKER_USERNAME}/shopverse-backend:${IMAGE_TAG}|" k8s/backend/deployment.yaml
 
+          echo "Updated frontend deployment:"
           cat k8s/frontend/deployment.yaml
+
+          echo "Updated backend deployment:"
           cat k8s/backend/deployment.yaml
 
       - name: Commit and push updated manifests
